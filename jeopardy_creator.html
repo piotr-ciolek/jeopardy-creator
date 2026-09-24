@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jeopardy Game Creator</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#080f29;color:#f8f9ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh}button,.upload{font:inherit;font-weight:750;cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}[hidden]{display:none!important}
+.shell{min-height:100dvh;display:flex;flex-direction:column}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;padding:8px clamp(12px,2vw,30px);border-bottom:1px solid #354779;background:#101b45;flex-wrap:wrap}.brand{font-size:clamp(1.2rem,2vw,1.65rem);font-weight:900;color:#ffdc83}.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.tabs{display:flex;gap:8px}.tab{min-height:44px;padding:8px clamp(12px,2vw,23px);border:1px solid #7384b9;border-radius:9px;background:#243667;color:#e5ebff}.tab[aria-selected=true]{background:#ffdc83;border-color:#ffdc83;color:#10182d}.tab:hover:not(:disabled):not([aria-selected=true]){background:#334c8c}button:focus-visible,.upload:focus-within{outline:3px solid white;outline-offset:2px}
+.lang-switch{display:flex;border:1px solid #7384b9;border-radius:9px;overflow:hidden}.lang-btn{min-height:44px;padding:8px 16px;border:0;background:#243667;color:#e5ebff}.lang-btn[aria-pressed=true]{background:#ffdc83;color:#10182d}.lang-btn:hover:not([aria-pressed=true]){background:#334c8c}
+.setup{width:min(900px,calc(100% - 36px));margin:40px auto}.setup h1{font-size:clamp(1.8rem,4vw,2.6rem);margin:0 0 12px}.setup p{line-height:1.6;color:#c6d0ed}.setup-card{margin:25px 0;padding:clamp(20px,3vw,32px);background:#15214b;border:1px solid #445783;border-radius:16px}.setup-actions,.downloads{display:flex;align-items:center;flex-wrap:wrap;gap:12px}.setup-actions{margin:20px 0}.downloads{margin-top:15px}.upload,.action{display:inline-flex;align-items:center;justify-content:center;min-height:47px;border-radius:9px;padding:10px 19px}.upload{background:#ffdc83;color:#111a2e}.upload:hover{background:#ffebb3}input[type=file]{position:absolute;width:1px;height:1px;opacity:0}.action{color:white;border:1px solid #8494c5;background:#294075}.action:hover:not(:disabled){background:#39548e}label[for=titleInput]{display:block;margin-bottom:8px;font-weight:750}#titleInput{width:100%;max-width:650px;padding:12px 14px;border:1px solid #8494c5;border-radius:8px;background:#0b1535;color:white;font:inherit;font-size:1.2rem}#status{flex:1 1 240px;color:#cbd4f1}#status.error{color:#ffb7be}code{color:#ffe1a0}
+.game{flex:1;min-height:0;padding:7px;display:flex;flex-direction:column}.game-title{flex:none;margin:0;padding:6px 12px 12px;text-align:center;font-size:clamp(1.5rem,2.6vw,2.8rem);line-height:1.15;font-weight:850;overflow-wrap:anywhere}.board-scroll{flex:1;min-height:0;width:100%;overflow-x:auto}.board{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));grid-template-rows:minmax(80px,1.12fr) repeat(5,minmax(70px,1fr));gap:clamp(4px,.65vw,10px);width:100%;min-width:875px;height:max(520px,calc(100dvh - 145px));min-height:max(520px,calc(100dvh - 145px));padding:clamp(4px,.65vw,10px);background:#0c1a50;border:1px solid #354a92;border-radius:12px}.category{display:grid;place-items:center;min-width:0;padding:8px;background:#102a86;text-align:center;text-transform:uppercase;font-size:clamp(1rem,1.6vw,1.65rem);font-weight:850;overflow-wrap:anywhere}.tile,.empty{width:100%;height:100%;min-width:0}.tile{border:0;background:#153dad;color:#ffdb80;font-size:clamp(2.4rem,4vw,4.5rem);font-weight:900;text-shadow:2px 3px 3px #08133d}.tile:hover,.tile:focus-visible{background:#2855d0;outline:4px solid #ffdb80;outline-offset:-4px}.empty{background:#0c1a50}
+dialog{inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;padding:clamp(20px,3vw,48px);border:0;border-radius:0;background:#10225e;color:white;text-align:center;overflow-y:auto}dialog[open]{display:flex;flex-direction:column}dialog::backdrop{background:#030719}.modal-inner{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 0}#modalMeta{color:#ffdb80;font-size:clamp(1.5rem,2.5vw,2.7rem);font-weight:850;text-transform:uppercase;overflow-wrap:anywhere}#modalQuestion{max-width:1500px;margin:clamp(24px,5vh,70px) auto;font-size:clamp(2.8rem,6vw,6.5rem);font-weight:800;line-height:1.2;white-space:pre-wrap;overflow-wrap:anywhere}#answerBox{width:min(1400px,100%);padding-top:clamp(15px,3vh,35px);border-top:2px solid #7487bd;font-size:clamp(2.3rem,5vw,5rem);line-height:1.25;white-space:pre-wrap;overflow-wrap:anywhere}#answerBox small{display:block;margin-bottom:12px;color:#ffdb80;font-size:clamp(1.1rem,1.8vw,1.7rem);font-weight:850;text-transform:uppercase}.modal-actions{display:flex;flex:none;justify-content:center;flex-wrap:wrap;gap:16px;padding:10px 0}.modal-actions button{min-height:62px;padding:12px 30px;border-radius:10px;font-size:clamp(1.2rem,1.7vw,1.6rem)}.primary{border:0;background:#ffdc83;color:#111a2e}.primary:hover{background:#ffebb3}
+@media(max-width:620px){.topbar{min-height:62px}.brand{font-size:1.1rem}.tab,.lang-btn{min-height:39px;padding:7px 10px;font-size:.9rem}.board{height:max(510px,calc(100dvh - 145px));min-height:max(510px,calc(100dvh - 145px))}dialog{padding:16px}#modalQuestion{font-size:clamp(2.3rem,9vw,4rem)}#answerBox{font-size:clamp(2rem,7vw,3.3rem)}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="topbar">
+  <span id="brand" class="brand" data-i18n="brand">JEOPARDY</span>
+  <div class="topbar-right">
+    <nav class="tabs" role="tablist" aria-label="Game views">
+      <button id="setupTab" class="tab" role="tab" aria-selected="true" aria-controls="setupPanel" type="button" data-i18n="tabCreator">Creator</button>
+      <button id="gameTab" class="tab" role="tab" aria-selected="false" aria-controls="gamePanel" type="button" disabled data-i18n="tabGame">Game board</button>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button id="langEN" class="lang-btn" type="button" aria-pressed="true">EN</button>
+      <button id="langPL" class="lang-btn" type="button" aria-pressed="false">PL</button>
+    </div>
+  </div>
+</header>
+<section id="setupPanel" class="setup" role="tabpanel" aria-labelledby="setupTab">
+<h1 data-i18n="setupHeading">Create your game</h1>
+<p data-i18n="setupIntro">Set the game title and load a CSV or XLSX file. When the questions are valid, the player board opens automatically.</p>
+<div class="setup-card">
+<label for="titleInput" data-i18n="titleLabel">Game title</label>
+<input id="titleInput" type="text" maxlength="120">
+<div class="setup-actions">
+  <label for="questionFile" class="upload"><span data-i18n="chooseFile">Choose CSV or XLSX</span><input id="questionFile" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+  <button id="reset" class="action" type="button" disabled data-i18n="resetBoard">Reset game board</button>
+  <span id="status" role="status" aria-live="polite" data-i18n="statusNone">No game loaded.</span>
+</div>
+<p data-i18n="formatHelp">Both formats use the same first-row headers: <code>category,question,answer</code>. Include exactly 6 distinct categories and 5 questions per category. Rows within each category are worth 100–500 points in file order. Save CSV files as UTF-8; Polish characters work in both formats. For XLSX, put the data on the first worksheet.</p>
+<p data-i18n="downloadIntro">Download a ready-to-edit template with 30 placeholder questions:</p>
+<div class="downloads">
+  <button id="downloadCSV" class="action" type="button" data-i18n="downloadCSVBtn">Download CSV template</button>
+  <button id="downloadXLSX" class="action" type="button" data-i18n="downloadXLSXBtn">Download XLSX template</button>
+</div>
+<p data-i18n="csvQuoteHelp">CSV fields containing commas or line breaks must be quoted with double quotes. To include a double quote inside a quoted field, write it twice.</p>
+</div></section>
+<section id="gamePanel" class="game" role="tabpanel" aria-labelledby="gameTab" hidden><h1 id="gameTitle" class="game-title"></h1><div class="board-scroll"><div id="board" class="board" aria-label="Jeopardy game board"></div></div></section>
+</div>
+<dialog id="modal" aria-labelledby="modalMeta" aria-describedby="modalQuestion"><div class="modal-inner"><div id="modalMeta"></div><div id="modalQuestion"></div><div id="answerBox" hidden><small data-i18n="answerLabel">Answer</small><span id="modalAnswer"></span></div></div><div class="modal-actions"><button id="reveal" type="button" class="primary" data-i18n="revealBtn">Reveal answer</button><button id="close" type="button" class="action" data-i18n="closeBtn">Close</button></div></dialog>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const encoder = new TextEncoder();
+let game = null, remaining = 0, currentPoints = 0;
+let lang = 'en';
+
+const STRINGS = {
+  en: {
+    brand: 'JEOPARDY',
+    tabCreator: 'Creator', tabGame: 'Game board',
+    setupHeading: 'Create your game',
+    setupIntro: 'Set the game title and load a CSV or XLSX file. When the questions are valid, the player board opens automatically.',
+    titleLabel: 'Game title', titlePlaceholder: 'Enter a game title', defaultTitle: 'Jeopardy',
+    chooseFile: 'Choose CSV or XLSX', resetBoard: 'Reset game board',
+    statusNone: 'No game loaded.',
+    statusRemaining: n => `${n} of 30 questions remaining.`,
+    statusLoadError: (name, message) => `Could not load "${name}": ${message}`,
+    csvDecodeError: 'Could not decode CSV. Save it as UTF-8.',
+    chooseFileError: 'Select a .csv or .xlsx file.',
+    formatHelp: 'Both formats use the same first-row headers: <code>category,question,answer</code>. Include exactly 6 distinct categories and 5 questions per category. Rows within each category are worth 100\u2013500 points in file order. Save CSV files as UTF-8; Polish characters work in both formats. For XLSX, put the data on the first worksheet.',
+    downloadIntro: 'Download a ready-to-edit template with 30 placeholder questions:',
+    downloadCSVBtn: 'Download CSV template', downloadXLSXBtn: 'Download XLSX template',
+    csvQuoteHelp: 'CSV fields containing commas or line breaks must be quoted with double quotes. To include a double quote inside a quoted field, write it twice.',
+    answerLabel: 'Answer', revealBtn: 'Reveal answer', closeBtn: 'Close',
+    points: n => `${n} points`,
+    headerMismatch: 'The first row must contain category, question and answer exactly once each.',
+    emptyFile: 'The file contains no questions.',
+    rowColumns: (row, got, expected) => `Data row ${row} has ${got} columns; expected ${expected}.`,
+    rowEmpty: row => `Data row ${row} has an empty category, question or answer.`,
+    categoryCount: n => `Found ${n} categories; exactly 6 are required.`,
+    categoryQuestions: (name, n) => `Category "${name}" has ${n} questions; exactly 5 are required.`,
+    templateCategory: n => `Category ${n}`,
+    templateQuestion: (q, c) => `Question ${q} for category ${c}?`,
+    templateAnswer: (q, c) => `Answer ${q} for category ${c}`,
+    csvFileName: 'jeopardy_template_en.csv', xlsxFileName: 'jeopardy_template_en.xlsx'
+  },
+  pl: {
+    brand: 'VA BANQUE',
+    tabCreator: 'Kreator', tabGame: 'Plansza gry',
+    setupHeading: 'Stwórz swoją grę',
+    setupIntro: 'Ustaw tytuł gry i wczytaj plik CSV lub XLSX. Gdy pytania są poprawne, plansza dla graczy otworzy się automatycznie.',
+    titleLabel: 'Tytuł gry', titlePlaceholder: 'Wpisz tytuł gry', defaultTitle: 'Va banque',
+    chooseFile: 'Wybierz plik CSV lub XLSX', resetBoard: 'Zresetuj planszę',
+    statusNone: 'Nie wczytano żadnej gry.',
+    statusRemaining: n => `Pozostało ${n} z 30 pytań.`,
+    statusLoadError: (name, message) => `Nie udało się wczytać pliku „${name}”: ${message}`,
+    csvDecodeError: 'Nie udało się zdekodować pliku CSV. Zapisz go w kodowaniu UTF-8.',
+    chooseFileError: 'Wybierz plik .csv lub .xlsx.',
+    formatHelp: 'Oba formaty używają tych samych nagłówków w pierwszym wierszu: <code>category,question,answer</code>. Podaj dokładnie 6 różnych kategorii i po 5 pytań w każdej. Wiersze w każdej kategorii są warte od 100 do 500 punktów, w kolejności z pliku. Pliki CSV zapisuj w kodowaniu UTF-8; polskie znaki działają w obu formatach. W przypadku XLSX dane muszą znajdować się na pierwszym arkuszu.',
+    downloadIntro: 'Pobierz gotowy do edycji szablon z 30 przykładowymi pytaniami:',
+    downloadCSVBtn: 'Pobierz szablon CSV', downloadXLSXBtn: 'Pobierz szablon XLSX',
+    csvQuoteHelp: 'Pola CSV zawierające przecinki lub znaki nowej linii muszą być otoczone znakami cudzysłowu. Aby wpisać znak cudzysłowu wewnątrz takiego pola, zapisz go dwukrotnie.',
+    answerLabel: 'Odpowiedź', revealBtn: 'Pokaż odpowiedź', closeBtn: 'Zamknij',
+    points: n => `${n} punktów`,
+    headerMismatch: 'Pierwszy wiersz musi zawierać kolumny category, question i answer, każdą dokładnie jeden raz.',
+    emptyFile: 'Plik nie zawiera żadnych pytań.',
+    rowColumns: (row, got, expected) => `Wiersz danych ${row} ma ${got} kolumn; oczekiwano ${expected}.`,
+    rowEmpty: row => `Wiersz danych ${row} ma puste pole category, question lub answer.`,
+    categoryCount: n => `Znaleziono ${n} kategorii; wymagane jest dokładnie 6.`,
+    categoryQuestions: (name, n) => `Kategoria „${name}” ma ${n} pytań; wymagane jest dokładnie 5.`,
+    templateCategory: n => `Kategoria ${n}`,
+    templateQuestion: (q, c) => `Pytanie ${q} z kategorii ${c}?`,
+    templateAnswer: (q, c) => `Odpowiedź ${q} z kategorii ${c}`,
+    csvFileName: 'va_banque_szablon_pl.csv', xlsxFileName: 'va_banque_szablon_pl.xlsx'
+  }
+};
+function t() { return STRINGS[lang]; }
+
+function applyLanguage() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const value = t()[key];
+    if (typeof value === 'string') el.innerHTML = value;
+  });
+  document.title = t().brand;
+  $('titleInput').placeholder = t().titlePlaceholder;
+  if (!$('titleInput').dataset.touched) {
+    $('titleInput').value = t().defaultTitle;
+    $('gameTitle').textContent = t().defaultTitle;
+  }
+  $('langEN').setAttribute('aria-pressed', String(lang === 'en'));
+  $('langPL').setAttribute('aria-pressed', String(lang === 'pl'));
+  if (game) showStatus(t().statusRemaining(remaining));
+  else showStatus(t().statusNone);
+  if ($('modal').open) {
+    $('modalMeta').textContent = t().points(currentPoints);
+  }
+}
+function setLang(next) { if (lang === next) return; lang = next; applyLanguage(); }
+
+function showTab(name) {
+  if (name === 'game' && !game) return;
+  if ($('modal').open) $('modal').close();
+  const playing = name === 'game';
+  $('setupTab').setAttribute('aria-selected', String(!playing));
+  $('gameTab').setAttribute('aria-selected', String(playing));
+  $('setupPanel').hidden = playing;
+  $('gamePanel').hidden = !playing;
+}
+function showStatus(message, error = false) {
+  $('status').textContent = message;
+  $('status').classList.toggle('error', error);
+}
+function parseCSV(input) {
+  const text = input.replace(/^\uFEFF/, '');
+  const rows = [];
+  let row = [], field = '', state = 'start';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (state === 'quoted') {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') state = 'afterQuote';
+      else field += c;
+    } else if (state === 'afterQuote') {
+      if (c === ',') { row.push(field); field = ''; state = 'start'; }
+      else if (c === '\r' || c === '\n') {
+        row.push(field); rows.push(row); row = []; field = ''; state = 'start';
+        if (c === '\r' && text[i + 1] === '\n') i++;
+      } else if (c !== ' ' && c !== '\t') throw new Error('Unexpected character after a closing quote.');
+    } else if (c === '"') {
+      if (state !== 'start' && field.trim() !== '') throw new Error('Unexpected quotation mark in an unquoted field.');
+      state = 'quoted';
+    } else if (c === ',') { row.push(field); field = ''; state = 'start'; }
+    else if (c === '\r' || c === '\n') {
+      row.push(field); rows.push(row); row = []; field = ''; state = 'start';
+      if (c === '\r' && text[i + 1] === '\n') i++;
+    } else {
+      field += c;
+      if (c !== ' ' && c !== '\t') state = 'unquoted';
+    }
+  }
+  if (state === 'quoted') throw new Error('A quoted field is missing its closing quotation mark.');
+  if (row.length || field !== '' || state === 'afterQuote') { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(cell => cell.trim()));
+}
+function parseGame(rows) {
+  if (!rows.length) throw new Error(t().emptyFile);
+  const header = rows[0].map(h => String(h).trim().toLowerCase());
+  const required = ['category', 'question', 'answer'];
+  if (required.some(h => header.filter(x => x === h).length !== 1)) throw new Error(t().headerMismatch);
+  const positions = required.map(h => header.indexOf(h));
+  const groups = new Map();
+  rows.slice(1).forEach((row, i) => {
+    if (row.length !== header.length) throw new Error(t().rowColumns(i + 2, row.length, header.length));
+    const [category, question, answer] = positions.map(p => String(row[p]).trim());
+    if (!category || !question || !answer) throw new Error(t().rowEmpty(i + 2));
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category).push({ question, answer });
+  });
+  if (groups.size !== 6) throw new Error(t().categoryCount(groups.size));
+  for (const [name, items] of groups) if (items.length !== 5) throw new Error(t().categoryQuestions(name, items.length));
+  return [...groups].map(([name, items]) => ({ name, items }));
+}
+function xmlParse(text) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('Invalid XML inside the XLSX file.');
+  return doc;
+}
+function nodes(parent, localName) { return [...parent.getElementsByTagNameNS('*', localName)]; }
+function child(parent, localName) { return [...parent.children].find(x => x.localName === localName); }
+
+function inflateRaw(source, expected) {
+  if (expected > 20000000) throw new Error('An XLSX entry is too large (20 MB limit).');
+  const output = new Uint8Array(expected);
+  let byte = 0, bits = 0, buffer = 0, written = 0;
+  function read(n) {
+    while (bits < n) {
+      if (byte >= source.length) throw new Error('Truncated XLSX compression stream.');
+      buffer |= source[byte++] << bits; bits += 8;
+    }
+    const result = buffer & ((1 << n) - 1);
+    buffer >>>= n; bits -= n;
+    return result;
+  }
+  function huffman(lengths) {
+    const counts = Array(16).fill(0), first = Array(16).fill(0), maps = Array.from({length:16}, () => new Map());
+    for (const n of lengths) if (n) counts[n]++;
+    let code = 0;
+    for (let n = 1; n <= 15; n++) { code = (code + counts[n - 1]) << 1; first[n] = code; }
+    const next = first.slice();
+    lengths.forEach((len, symbol) => { if (len) maps[len].set(next[len]++, symbol); });
+    return () => {
+      let value = 0;
+      for (let n = 1; n <= 15; n++) {
+        value = (value << 1) | read(1);
+        if (maps[n].has(value)) return maps[n].get(value);
+      }
+      throw new Error('Invalid XLSX compression code.');
+    };
+  }
+  const lengthBase = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+  const lengthExtra = [0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+  const distBase = [1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+  const distExtra = [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+  let last;
+  do {
+    last = read(1);
+    const type = read(2);
+    if (type === 0) {
+      read(bits % 8);
+      const count = read(16), check = read(16);
+      if ((count ^ check) !== 65535 || written + count > expected) throw new Error('Invalid XLSX stored block.');
+      for (let i = 0; i < count; i++) output[written++] = read(8);
+      continue;
+    }
+    let litLengths, distLengths;
+    if (type === 1) {
+      litLengths = Array.from({length:288}, (_, i) => i < 144 ? 8 : i < 256 ? 9 : i < 280 ? 7 : 8);
+      distLengths = Array(32).fill(5);
+    } else if (type === 2) {
+      const hlit = read(5) + 257, hdist = read(5) + 1, hclen = read(4) + 4;
+      const order = [16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+      const codeLengths = Array(19).fill(0);
+      for (let i = 0; i < hclen; i++) codeLengths[order[i]] = read(3);
+      const decodeLength = huffman(codeLengths), all = [];
+      while (all.length < hlit + hdist) {
+        const symbol = decodeLength();
+        if (symbol < 16) all.push(symbol);
+        else if (symbol === 16) {
+          if (!all.length) throw new Error('Invalid XLSX compression run.');
+          const n = read(2) + 3, previous = all[all.length - 1];
+          for (let i = 0; i < n; i++) all.push(previous);
+        } else {
+          const n = symbol === 17 ? read(3) + 3 : read(7) + 11;
+          for (let i = 0; i < n; i++) all.push(0);
+        }
+      }
+      if (all.length !== hlit + hdist) throw new Error('Invalid XLSX compression lengths.');
+      litLengths = all.slice(0, hlit); distLengths = all.slice(hlit);
+    } else throw new Error('Unsupported XLSX compression block.');
+    const literal = huffman(litLengths), distance = huffman(distLengths);
+    while (true) {
+      const symbol = literal();
+      if (symbol < 256) {
+        if (written >= expected) throw new Error('Invalid XLSX uncompressed size.');
+        output[written++] = symbol;
+      } else if (symbol === 256) break;
+      else {
+        const k = symbol - 257;
+        if (k < 0 || k >= lengthBase.length) throw new Error('Invalid XLSX length code.');
+        const length = lengthBase[k] + read(lengthExtra[k]);
+        const d = distance();
+        if (d >= distBase.length) throw new Error('Invalid XLSX distance code.');
+        const offset = distBase[d] + read(distExtra[d]);
+        if (offset > written || written + length > expected) throw new Error('Invalid XLSX back-reference.');
+        for (let i = 0; i < length; i++) { output[written] = output[written - offset]; written++; }
+      }
+    }
+  } while (!last);
+  if (written !== expected) throw new Error('XLSX entry has an unexpected uncompressed size.');
+  return output;
+}
+function zipReader(bytes) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let end = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+    if (view.getUint32(i, true) === 0x06054b50 && i + 22 + view.getUint16(i + 20, true) === bytes.length) { end = i; break; }
+  }
+  if (end < 0) throw new Error('This is not a valid XLSX (ZIP) file.');
+  const entries = new Map();
+  let pos = view.getUint32(end + 16, true);
+  const count = view.getUint16(end + 10, true);
+  for (let i = 0; i < count; i++) {
+    if (pos + 46 > bytes.length || view.getUint32(pos, true) !== 0x02014b50) throw new Error('Invalid XLSX ZIP directory.');
+    const flags = view.getUint16(pos + 8, true), method = view.getUint16(pos + 10, true);
+    const size = view.getUint32(pos + 20, true), original = view.getUint32(pos + 24, true);
+    const nameLength = view.getUint16(pos + 28, true), extra = view.getUint16(pos + 30, true), comment = view.getUint16(pos + 32, true);
+    const offset = view.getUint32(pos + 42, true);
+    const name = new TextDecoder('utf-8').decode(bytes.subarray(pos + 46, pos + 46 + nameLength));
+    entries.set(name, { flags, method, size, original, offset });
+    pos += 46 + nameLength + extra + comment;
+  }
+  return name => {
+    const entry = entries.get(name);
+    if (!entry) return null;
+    const { flags, method, size, original, offset } = entry;
+    if (flags & 1) throw new Error('Password-protected XLSX files are not supported.');
+    if (original > 20000000) throw new Error('An XLSX entry is too large (20 MB limit).');
+    if (offset + 30 > bytes.length || view.getUint32(offset, true) !== 0x04034b50) throw new Error('Invalid XLSX ZIP entry.');
+    const start = offset + 30 + view.getUint16(offset + 26, true) + view.getUint16(offset + 28, true);
+    if (start + size > bytes.length) throw new Error('Truncated XLSX ZIP entry.');
+    const compressed = bytes.subarray(start, start + size);
+    const result = method === 0 ? compressed : method === 8 ? inflateRaw(compressed, original) : null;
+    if (!result || result.length !== original) throw new Error('Unsupported or invalid XLSX compression.');
+    return new TextDecoder('utf-8', { fatal: true }).decode(result);
+  };
+}
+function parseXLSX(bytes) {
+  const get = zipReader(bytes);
+  const workbookText = get('xl/workbook.xml');
+  const relationsText = get('xl/_rels/workbook.xml.rels');
+  if (!workbookText || !relationsText) throw new Error('XLSX workbook information is missing.');
+  const workbook = xmlParse(workbookText), relations = xmlParse(relationsText);
+  const sheet = nodes(workbook, 'sheet')[0];
+  if (!sheet) throw new Error('The workbook has no worksheet.');
+  const relationshipId = sheet.getAttribute('r:id') || sheet.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+  const relation = nodes(relations, 'Relationship').find(r => r.getAttribute('Id') === relationshipId);
+  if (!relation) throw new Error('The first worksheet could not be found.');
+  const target = relation.getAttribute('Target');
+  if (!target || relation.getAttribute('TargetMode') === 'External') throw new Error('External worksheets are not supported.');
+  const sheetPath = new URL(target.startsWith('/') ? target : 'xl/' + target, 'https://local.invalid/').pathname.slice(1);
+  const sheetText = get(decodeURIComponent(sheetPath));
+  if (!sheetText) throw new Error('The first worksheet is missing from the XLSX file.');
+  const sharedText = get('xl/sharedStrings.xml');
+  const shared = sharedText ? nodes(xmlParse(sharedText), 'si').map(si => nodes(si, 't').map(t => t.textContent).join('')) : [];
+  const worksheet = xmlParse(sheetText);
+  const sheetData = nodes(worksheet, 'sheetData')[0];
+  if (!sheetData) throw new Error('The first worksheet has no data.');
+  const rows = [];
+  for (const row of [...sheetData.children].filter(e => e.localName === 'row')) {
+    const values = [];
+    for (const cell of [...row.children].filter(e => e.localName === 'c')) {
+      const ref = cell.getAttribute('r') || '';
+      const letters = /^[A-Z]+/i.exec(ref)?.[0];
+      let index = values.length;
+      if (letters) {
+        index = 0;
+        for (const c of letters.toUpperCase()) index = index * 26 + c.charCodeAt(0) - 64;
+        index--;
+      }
+      if (index > 100) throw new Error('The worksheet has too many columns.');
+      const type = cell.getAttribute('t');
+      const valueNode = child(cell, 'v');
+      let value = '';
+      if (type === 'inlineStr') value = nodes(cell, 't').map(t => t.textContent).join('');
+      else if (type === 's') {
+        value = shared[Number(valueNode?.textContent)];
+        if (value === undefined) throw new Error('The XLSX shared strings are invalid.');
+      } else if (type === 'e') throw new Error('The worksheet contains an error cell.');
+      else value = valueNode?.textContent ?? '';
+      values[index] = value;
+    }
+    if (values.some(v => String(v ?? '').trim())) rows.push(Array.from({length:values.length}, (_, i) => values[i] ?? ''));
+  }
+  if (!rows.length) throw new Error('The first worksheet is empty.');
+  const width = rows[0].length;
+  return rows.map(r => Array.from({length:width}, (_, i) => r[i] ?? ''));
+}
+
+function templateRows() {
+  const s = t();
+  const rows = [['category','question','answer']];
+  for (let c = 1; c <= 6; c++) for (let q = 1; q <= 5; q++) {
+    const category = s.templateCategory(c);
+    rows.push([category, s.templateQuestion(q, category), s.templateAnswer(q, category)]);
+  }
+  return rows;
+}
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href = url; link.download = name; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function escapeXML(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+function crc32(bytes) {
+  let crc = -1;
+  for (const b of bytes) {
+    crc ^= b;
+    for (let n = 0; n < 8; n++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return (crc ^ -1) >>> 0;
+}
+function concat(parts) {
+  const result = new Uint8Array(parts.reduce((sum,p) => sum + p.length, 0));
+  let offset = 0;
+  for (const part of parts) { result.set(part, offset); offset += part.length; }
+  return result;
+}
+function makeZip(files) {
+  const parts = [], directory = [];
+  let offset = 0;
+  for (const [name, contents] of Object.entries(files)) {
+    const filename = encoder.encode(name), data = encoder.encode(contents), crc = crc32(data);
+    const local = new Uint8Array(30 + filename.length), lv = new DataView(local.buffer);
+    lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true); lv.setUint32(14, crc, true);
+    lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+    lv.setUint16(26, filename.length, true); local.set(filename, 30);
+    parts.push(local, data);
+    const central = new Uint8Array(46 + filename.length), cv = new DataView(central.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true); cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+    cv.setUint16(28, filename.length, true); cv.setUint32(42, offset, true);
+    central.set(filename, 46); directory.push(central);
+    offset += local.length + data.length;
+  }
+  const directorySize = directory.reduce((sum,p) => sum + p.length, 0);
+  const end = new Uint8Array(22), ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, directory.length, true);
+  ev.setUint16(10, directory.length, true); ev.setUint32(12, directorySize, true);
+  ev.setUint32(16, offset, true);
+  return concat([...parts, ...directory, end]);
+}
+function makeXLSX(rows) {
+  const main = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>';
+  const sheet = xml + `<worksheet xmlns="${main}"><sheetData>` + rows.map((row,i) => `<row r="${i+1}">` + row.map((text,j) => `<c r="${String.fromCharCode(65+j)}${i+1}" t="inlineStr"><is><t>${escapeXML(text)}</t></is></c>`).join('') + '</row>').join('') + '</sheetData></worksheet>';
+  const rels = 'http://schemas.openxmlformats.org/package/2006/relationships';
+  return makeZip({
+    '[Content_Types].xml':xml+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+    '_rels/.rels':xml+`<Relationships xmlns="${rels}"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml':xml+`<workbook xmlns="${main}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Questions" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels':xml+`<Relationships xmlns="${rels}"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`,
+    'xl/worksheets/sheet1.xml':sheet
+  });
+}
+function openQuestion(category, item, points, tile) {
+  const empty = document.createElement('div'); empty.className = 'empty'; tile.replaceWith(empty);
+  remaining--; showStatus(t().statusRemaining(remaining));
+  currentPoints = points;
+  $('modalMeta').textContent = `${category} · ${t().points(points)}`;
+  $('modalQuestion').textContent = item.question;
+  $('modalAnswer').textContent = item.answer;
+  $('answerBox').hidden = true; $('reveal').hidden = false;
+  $('modal').showModal(); $('reveal').focus();
+}
+function renderBoard() {
+  const board = $('board'); board.replaceChildren(); remaining = 30;
+  for (const {name} of game) {
+    const heading = document.createElement('div'); heading.className = 'category';
+    heading.textContent = name; board.append(heading);
+  }
+  for (let row = 0; row < 5; row++) for (const {name,items} of game) {
+    const points = (row + 1) * 100, tile = document.createElement('button');
+    tile.type = 'button'; tile.className = 'tile'; tile.textContent = String(points);
+    tile.setAttribute('aria-label', `${name}, ${t().points(points)}`);
+    tile.addEventListener('click', () => openQuestion(name, items[row], points, tile)); board.append(tile);
+  }
+  $('gameTab').disabled = false; $('reset').disabled = false;
+  showStatus(t().statusRemaining(remaining));
+}
+$('setupTab').addEventListener('click', () => showTab('setup'));
+$('gameTab').addEventListener('click', () => showTab('game'));
+$('langEN').addEventListener('click', () => setLang('en'));
+$('langPL').addEventListener('click', () => setLang('pl'));
+$('titleInput').addEventListener('input', () => {
+  $('titleInput').dataset.touched = '1';
+  $('gameTitle').textContent = $('titleInput').value.trim() || t().defaultTitle;
+});
+$('questionFile').addEventListener('change', async event => {
+  const file = event.target.files[0]; if (!file) return;
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let rows;
+    if (/\.csv$/i.test(file.name)) rows = parseCSV(new TextDecoder('utf-8', {fatal:true}).decode(bytes));
+    else if (/\.xlsx$/i.test(file.name)) rows = parseXLSX(bytes);
+    else throw new Error(t().chooseFileError);
+    const parsed = parseGame(rows);
+    game = parsed; renderBoard(); showTab('game');
+  } catch (error) {
+    const message = error instanceof TypeError && /\.csv$/i.test(file.name) ? t().csvDecodeError : error.message;
+    showStatus(t().statusLoadError(file.name, message), true);
+  }
+  event.target.value = '';
+});
+$('reset').addEventListener('click', () => { if (game) renderBoard(); });
+$('reveal').addEventListener('click', () => { $('answerBox').hidden = false; $('reveal').hidden = true; $('close').focus(); });
+$('close').addEventListener('click', () => $('modal').close());
+$('downloadCSV').addEventListener('click', () => {
+  const quote = x => /[",\r\n]/.test(x) ? '"' + x.replace(/"/g,'""') + '"' : x;
+  const text = '\uFEFF' + templateRows().map(row => row.map(quote).join(',')).join('\r\n') + '\r\n';
+  saveBlob(new Blob([text], {type:'text/csv;charset=utf-8'}), t().csvFileName);
+});
+$('downloadXLSX').addEventListener('click', () => {
+  saveBlob(new Blob([makeXLSX(templateRows())], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), t().xlsxFileName);
+});
+applyLanguage();
+</script>
+</body></html>
