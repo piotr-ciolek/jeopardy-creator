@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Local game data (do not commit real question sets / templates you download)
+*.csv
+*.xlsx
+!template*.csv
+!template*.xlsx
+
+# Logs
+*.log
