@@ -12,7 +12,7 @@ body { margin: 0; min-height: 100dvh; }
 button, .upload { font: inherit; font-weight: 750; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .48; }
 [hidden] { display: none !important; }
-textarea, input[type=text] { font: inherit; color: inherit; }
+textarea, input[type=text], input[type=number] { font: inherit; color: inherit; }
 button:focus-visible, .upload:focus-within, input:focus-visible, textarea:focus-visible { outline: 3px solid #ffdc83; outline-offset: 2px; }
 
 /* ---------- Top bar ---------- */
@@ -30,10 +30,12 @@ button:focus-visible, .upload:focus-within, input:focus-visible, textarea:focus-
 .lang-btn:hover:not([aria-pressed=true]) { background: #334c8c; }
 
 /* ---------- Creator / edit panel ---------- */
-.edit-panel { width: min(1100px, calc(100% - 36px)); margin: 22px auto 0; padding: clamp(18px, 3vw, 28px); background: #15214b; border: 1px solid #445783; border-radius: 16px; }
-.edit-panel p { line-height: 1.55; color: #c6d0ed; margin: 12px 0; }
-.setup-actions, .downloads { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
-.upload, .action { display: inline-flex; align-items: center; justify-content: center; min-height: 47px; border-radius: 9px; padding: 10px 19px; }
+.edit-panel { width: min(1100px, calc(100% - 36px)); margin: 22px auto 0; padding: clamp(16px, 3vw, 26px); background: #15214b; border: 1px solid #445783; border-radius: 16px; }
+.edit-panel p { line-height: 1.5; color: #c6d0ed; margin: 8px 0; font-size: .97rem; }
+.edit-panel h2 { font-size: 1.1rem; margin: 0 0 6px; color: #ffdc83; }
+.setup-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 4px 0 10px; }
+.downloads { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 8px 0 0; }
+.upload, .action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 9px; padding: 9px 16px; font-size: .95rem; }
 .upload { background: #ffdc83; color: #111a2e; }
 .upload:hover { background: #ffebb3; }
 input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
@@ -41,9 +43,15 @@ input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .action:hover:not(:disabled) { background: #39548e; }
 .action.danger { border-color: #c26a76; background: #5a2530; }
 .action.danger:hover { background: #7c3140; }
-#status { color: #cbd4f1; }
+.action.export { border-color: #6fbf9a; background: #1c4636; }
+.action.export:hover { background: #275f47; }
+#status { color: #cbd4f1; font-size: .95rem; }
 #status.error { color: #ffb7be; }
 code { color: #ffe1a0; }
+.field-inline { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px; border: 1px solid #7384b9; border-radius: 9px; background: #243667; font-weight: 750; font-size: .95rem; }
+.field-inline input[type=number] { width: 64px; padding: 6px 8px; border-radius: 8px; border: 1px solid #8494c5; background: #0b1535; color: white; }
+.panel-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #354779; }
+@media (max-width: 760px) { .panel-columns { grid-template-columns: 1fr; } }
 
 /* ---------- Game board ---------- */
 .game { flex: 1; min-height: 0; padding: 7px; display: flex; flex-direction: column; }
@@ -80,6 +88,13 @@ dialog::backdrop { background: #030719; }
 #answerBox { width: min(1400px, 100%); padding-top: clamp(15px, 3vh, 35px); border-top: 2px solid #7487bd; font-size: clamp(2.3rem, 5vw, 5rem); line-height: 1.25; white-space: pre-wrap; overflow-wrap: anywhere; }
 #answerBox small { display: block; margin-bottom: 12px; color: #ffdb80; font-size: clamp(1.1rem, 1.8vw, 1.7rem); font-weight: 850; text-transform: uppercase; }
 
+/* ---------- Timer badge (clock-style, monospace digits) ---------- */
+#timerBadge { position: fixed; top: clamp(14px, 3vh, 30px); left: clamp(14px, 3vw, 30px); z-index: 5; display: flex; align-items: center; gap: 8px; min-width: 112px; padding: 10px 18px; border-radius: 999px; border: 2px solid #7487bd; background: #152358; color: #ffdb80; }
+#timerBadge .timer-icon { font-size: clamp(1.1rem, 2vw, 1.5rem); line-height: 1; }
+#timerBadge #timerValue { font-family: "Courier New", monospace; font-variant-numeric: tabular-nums; font-weight: 900; font-size: clamp(1.5rem, 3vw, 2.3rem); letter-spacing: .02em; }
+#timerBadge.timer-expired { color: #ff8a80; border-color: #ff8a80; animation: timerBounce .6s ease; }
+@keyframes timerBounce { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.35); } 65% { transform: scale(.88); } }
+
 /* ---------- Edit dialog ---------- */
 .edit-form { width: min(950px, 100%); text-align: left; margin-top: 20px; }
 .edit-form label { display: block; margin: 18px 0 8px; font-weight: 800; color: #ffdb80; text-transform: uppercase; font-size: 1.05rem; }
@@ -90,18 +105,21 @@ dialog::backdrop { background: #030719; }
 .edit-form .image-upload-btn:hover { background: #ffebb3; }
 .image-preview-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 #editImagePreview { max-width: 220px; max-height: 130px; border-radius: 8px; border: 1px solid #7487bd; object-fit: contain; }
+#editImageSizeInfo { font-size: .95rem; color: #a9b6e0; text-transform: none; font-weight: 600; }
+.field-hint { margin: 6px 0 0; color: #a9b6e0; font-size: .92rem; text-transform: none; font-weight: 500; }
 .link-row { display: flex; gap: 14px; flex-wrap: wrap; }
 .link-row input { flex: 1; min-width: 200px; padding: 13px 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.15rem; }
-.link-hint { margin: 6px 0 0; color: #a9b6e0; font-size: .95rem; text-transform: none; font-weight: 500; }
 
 /* ---------- Share dialog ---------- */
-.share-form { width: min(720px, 100%); text-align: left; margin-top: 10px; }
-.share-form p { color: #c6d0ed; line-height: 1.55; font-size: 1.15rem; text-align: center; }
-.share-checkbox { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: 750; font-size: 1.1rem; }
-.share-checkbox input { width: 20px; height: 20px; accent-color: #ffdc83; }
-#shareLinkInput { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.15rem; }
-.share-warning { margin-top: 12px; color: #ffcf7a; font-weight: 700; }
-.share-status { margin-top: 12px; color: #8ff0c2; font-weight: 800; min-height: 1.4em; }
+#shareHeading { font-size: clamp(2.1rem, 4vw, 3.3rem); font-weight: 900; letter-spacing: -.015em; color: #ffdc83; text-shadow: 0 3px 18px rgba(255, 220, 131, .35); margin-bottom: 10px; }
+.share-form { width: min(680px, 100%); text-align: left; margin-top: 6px; }
+.share-form > p { color: #c6d0ed; line-height: 1.5; font-size: 1.1rem; text-align: center; margin: 0 0 20px; }
+#shareLinkInput { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.1rem; }
+.share-status { text-align: center; margin-top: 16px; color: #8ff0c2; font-weight: 800; font-size: 1.05rem; min-height: 1.4em; }
+.share-checkbox { display: flex; align-items: center; gap: 10px; margin: 20px 0 4px; font-weight: 750; font-size: 1.05rem; }
+.share-checkbox input { width: 20px; height: 20px; accent-color: #ffdc83; flex: none; }
+.share-note { margin: 4px 0 0; color: #a9b6e0; font-size: .92rem; text-align: left; }
+.share-warning { margin-top: 14px; color: #ffcf7a; font-weight: 700; font-size: .95rem; text-align: center; }
 
 /* ---------- Small screens ---------- */
 @media (max-width: 620px) {
@@ -113,6 +131,7 @@ dialog::backdrop { background: #030719; }
   #modalQuestion { font-size: clamp(2.3rem, 9vw, 4rem); }
   #answerBox { font-size: clamp(2rem, 7vw, 3.3rem); }
   #modalImage { max-height: 28vh; }
+  #timerBadge { min-width: 90px; padding: 8px 14px; }
 }
 </style>
 </head>
@@ -132,19 +151,36 @@ dialog::backdrop { background: #030719; }
   </header>
 
   <section id="editPanel" class="edit-panel" hidden>
-    <p data-i18n="editIntro">Editable mode is on. Import a file below, or click any category name or point tile on the board to type your own questions and answers.</p>
+    <p data-i18n="editIntro">Import a file below, or click a category name or a point tile on the board to edit it directly.</p>
+
     <div class="setup-actions">
       <label for="questionFile" class="upload"><span data-i18n="chooseFile">Choose CSV or XLSX</span><input id="questionFile" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
       <button id="clearBoard" class="action danger" type="button" data-i18n="clearBoardBtn">Clear board</button>
-      <span id="status" role="status" aria-live="polite" data-i18n="statusIdle">Board ready. Import a file or edit tiles directly.</span>
+      <label class="edit-toggle"><input type="checkbox" id="timerEnabledInput" checked><span data-i18n="showTimerLabel">Show timer</span></label>
+      <label class="field-inline"><span data-i18n="timerSecondsLabel">Seconds/question</span><input id="timerSecondsInput" type="number" min="3" max="300" value="30"></label>
     </div>
-    <p data-i18n="formatHelp">Both formats use the same first-row headers: <code>category,question,answer</code>. Include exactly 6 distinct categories and 5 questions per category. Rows within each category are worth 100–500 points in file order. Save CSV files as UTF-8; Polish characters work in both formats. For XLSX, put the data on the first worksheet.</p>
-    <p data-i18n="downloadIntro">Download a ready-to-edit template with 30 placeholder questions:</p>
-    <div class="downloads">
-      <button id="downloadCSV" class="action" type="button" data-i18n="downloadCSVBtn">Download CSV template</button>
-      <button id="downloadXLSX" class="action" type="button" data-i18n="downloadXLSXBtn">Download XLSX template</button>
+    <p id="status" role="status" aria-live="polite" data-i18n="statusIdle">Board ready. Import a file or edit tiles directly.</p>
+    <p data-i18n="formatHelp">Columns: <code>category,question,answer</code> — 6 categories × 5 questions. CSV must be UTF-8.</p>
+
+    <div class="panel-columns">
+      <div>
+        <h2 data-i18n="exportHeading">Export your game</h2>
+        <p data-i18n="exportIntro">Saves everything — including images and links — for backup or sharing. (Doesn't include play progress.)</p>
+        <div class="downloads">
+          <button id="exportCSV" class="action export" type="button" data-i18n="exportCSVBtn">Export as CSV</button>
+          <button id="exportXLSX" class="action export" type="button" data-i18n="exportXLSXBtn">Export as XLSX</button>
+        </div>
+      </div>
+      <div>
+        <h2 data-i18n="templateHeading">Blank template</h2>
+        <p data-i18n="downloadIntro">A blank 30-question starting point, text only.</p>
+        <div class="downloads">
+          <button id="downloadCSV" class="action" type="button" data-i18n="downloadCSVBtn">Download CSV template</button>
+          <button id="downloadXLSX" class="action" type="button" data-i18n="downloadXLSXBtn">Download XLSX template</button>
+        </div>
+      </div>
     </div>
-    <p data-i18n="csvQuoteHelp">CSV fields containing commas or line breaks must be quoted with double quotes. To include a double quote inside a quoted field, write it twice.</p>
+    <p data-i18n="csvExtraColumnsHelp">Optional columns: <code>image</code>, <code>link_label</code>, <code>link_url</code> — exported files include them automatically.</p>
   </section>
 
   <section class="game">
@@ -157,6 +193,7 @@ dialog::backdrop { background: #030719; }
 </div>
 
 <dialog id="modal" aria-labelledby="modalMeta" aria-describedby="modalQuestion">
+  <div id="timerBadge" hidden aria-label="Time remaining"><span class="timer-icon">⏱</span><span id="timerValue">0:30</span></div>
   <div class="modal-inner">
     <div id="modalMeta"></div>
     <img id="modalImage" alt="" hidden>
@@ -185,16 +222,18 @@ dialog::backdrop { background: #030719; }
         <label for="editImageFile" class="upload image-upload-btn"><span data-i18n="chooseImage">Choose image</span><input id="editImageFile" type="file" accept="image/*"></label>
         <div class="image-preview-wrap">
           <img id="editImagePreview" alt="" hidden>
+          <span id="editImageSizeInfo" hidden></span>
           <button id="editImageRemove" class="action" type="button" hidden data-i18n="removeImageBtn">Remove image</button>
         </div>
       </div>
+      <p class="field-hint" data-i18n="imageCompressHint">Images are resized and compressed automatically to keep files and links small.</p>
 
       <label for="editLinkLabelInput" data-i18n="editLinkLabel">Link (optional)</label>
       <div class="link-row">
         <input id="editLinkLabelInput" type="text" maxlength="80">
         <input id="editLinkUrlInput" type="text" maxlength="2000">
       </div>
-      <p class="link-hint" data-i18n="linkHint">Give the link a short name (e.g. "Watch clip") and its full address (e.g. a YouTube URL). It appears as a clickable button on the question card.</p>
+      <p class="field-hint" data-i18n="linkHint">Add a name and a URL (e.g. a YouTube link) — it shows as a button on the question.</p>
     </div>
   </div>
   <div class="modal-actions">
@@ -207,17 +246,18 @@ dialog::backdrop { background: #030719; }
   <div class="modal-inner">
     <div id="shareHeading" data-i18n="shareTitle">Share this game</div>
     <div class="share-form">
-      <p data-i18n="shareIntro">This link encodes the entire board — title, categories, questions, answers and progress — so anyone who opens it sees the same game. The link also updates this page's address bar so you can bookmark it.</p>
-      <label class="share-checkbox"><input type="checkbox" id="shareIncludeImages"><span data-i18n="includeImagesLabel">Include images in the link (can make it very long)</span></label>
-      <input id="shareLinkInput" type="text" readonly>
+      <p data-i18n="shareIntro">This link is a snapshot of your board right now — copy it below to share or bookmark. Click Share again after making changes to get an updated link.</p>
+      <input id="shareLinkInput" type="text" readonly aria-label="Shareable link">
       <div id="shareWarning" class="share-warning" hidden></div>
-      <div id="shareStatus" class="share-status" aria-live="polite"></div>
+      <label class="share-checkbox"><input type="checkbox" id="shareIncludeImages"><span data-i18n="includeImagesLabel">Include images in the link</span></label>
+      <p class="share-note" data-i18n="includeImagesNote">Images are compressed first, but very long links can fail in some browsers or chat apps. For guaranteed results with images, use Export instead.</p>
     </div>
   </div>
   <div class="modal-actions">
     <button id="shareCopy" type="button" class="primary" data-i18n="copyBtn">Copy link</button>
     <button id="shareClose" type="button" class="action" data-i18n="closeBtn">Close</button>
   </div>
+  <div id="shareStatus" class="share-status" aria-live="polite"></div>
 </dialog>
 
 <script>
@@ -235,109 +275,138 @@ let state = null;
 let editingTarget = null;
 let editingImage = null;
 
+/* Timer settings are a live session preference, not saved to export/share payloads. */
+let timerEnabled = true;
+let timerSeconds = 30;
+let timerInterval = null;
+
 /* ---------- Translations ---------- */
 const STRINGS = {
   en: {
     brand: 'JEOPARDY!',
     editModeLabel: 'Editable mode',
-    editIntro: 'Editable mode is on. Import a file below, or click any category name or point tile on the board to type your own questions and answers.',
+    editIntro: 'Import a file below, or click a category name or a point tile on the board to edit it directly.',
     titlePlaceholder: 'Enter a game title', defaultTitle: 'Jeopardy!',
     chooseFile: 'Choose CSV or XLSX', resetBoard: 'Reset game board', clearBoardBtn: 'Clear board',
+    showTimerLabel: 'Show timer', timerSecondsLabel: 'Seconds/question',
     shareBtn: '🔗 Share', shareTitle: 'Share this game',
-    shareIntro: 'This link encodes the entire board — title, categories, questions, answers and progress — so anyone who opens it sees the same game. The link also updates this page\u2019s address bar so you can bookmark it.',
-    includeImagesLabel: 'Include images in the link (can make it very long)',
-    copyBtn: 'Copy link', copiedMsg: 'Link copied to clipboard!',
-    copyFailMsg: 'Could not copy automatically — select the text above and copy it manually.',
-    linkTooLongWarning: n => `This link is very long (about ${n.toLocaleString('en-US')} characters). Some browsers, chat apps or platforms may truncate or reject it. Consider unchecking "include images", or removing large images from questions.`,
+    shareIntro: 'This link is a snapshot of your board right now \u2014 copy it below to share or bookmark. Click Share again after making changes to get an updated link.',
+    includeImagesLabel: 'Include images in the link',
+    includeImagesNote: 'Images are compressed first, but very long links can fail in some browsers or chat apps. For guaranteed results with images, use Export instead.',
+    copyBtn: 'Copy link', copiedMsg: 'Link copied!',
+    copyFailMsg: 'Could not copy — select the link above and copy it manually.',
+    linkTooLongWarning: n => `This link is very long (~${n.toLocaleString('en-US')} characters) and may not work everywhere. Try unchecking "include images", or use Export instead.`,
+    addressBarWarning: 'This link is too long for the address bar, but it\u2019s still valid — copy and share it below.',
     statusIdle: 'Board ready. Import a file or edit tiles directly.',
     statusRemaining: n => `${n} of 30 questions remaining.`,
-    statusLoaded: 'File loaded. Editable mode is still on — turn it off to start playing.',
+    statusLoaded: 'File loaded. Turn off Editable mode to start playing.',
     statusSaved: 'Saved.',
     statusCleared: 'Board cleared.',
     stateRestored: 'Restored the game from your shared link.',
-    stateRestoreError: 'The link could not be read; starting with a blank board.',
+    stateRestoreError: 'Could not read the link; starting with a blank board.',
     statusLoadError: (name, message) => `Could not load "${name}": ${message}`,
-    csvDecodeError: 'Could not decode CSV. Save it as UTF-8.',
+    csvDecodeError: 'Could not read the file. Save it as UTF-8 and try again.',
     chooseFileError: 'Select a .csv or .xlsx file.',
     imageTypeError: 'Select an image file (PNG, JPEG, GIF, WEBP, etc.).',
-    formatHelp: 'Both formats use the same first-row headers: <code>category,question,answer</code>. Include exactly 6 distinct categories and 5 questions per category. Rows within each category are worth 100\u2013500 points in file order. Save CSV files as UTF-8; Polish characters work in both formats. For XLSX, put the data on the first worksheet.',
-    downloadIntro: 'Download a ready-to-edit template with 30 placeholder questions:',
+    imageCompressing: 'Compressing image…',
+    imageCompressError: 'Could not process that image. Try a different file.',
+    imageCompressedInfo: (originalKB, finalKB) => `Compressed from ~${originalKB} KB to ~${finalKB} KB`,
+    formatHelp: 'Columns: <code>category,question,answer</code> \u2014 6 categories \u00d7 5 questions. CSV must be UTF-8.',
+    exportHeading: 'Export your game',
+    exportIntro: 'Saves everything \u2014 including images and links \u2014 for backup or sharing. (Doesn\u2019t include play progress.)',
+    exportCSVBtn: 'Export as CSV', exportXLSXBtn: 'Export as XLSX',
+    templateHeading: 'Blank template',
+    downloadIntro: 'A blank 30-question starting point, text only.',
     downloadCSVBtn: 'Download CSV template', downloadXLSXBtn: 'Download XLSX template',
-    csvQuoteHelp: 'CSV fields containing commas or line breaks must be quoted with double quotes. To include a double quote inside a quoted field, write it twice.',
+    csvExtraColumnsHelp: 'Optional columns: <code>image</code>, <code>link_label</code>, <code>link_url</code> \u2014 exported files include them automatically.',
     answerLabel: 'Answer', revealBtn: 'Reveal answer', closeBtn: 'Close',
     editQuestionLabel: 'Question', editAnswerLabel: 'Answer', saveBtn: 'Save', cancelBtn: 'Cancel',
     editImageLabel: 'Image (optional)', chooseImage: 'Choose image', removeImageBtn: 'Remove image',
+    imageCompressHint: 'Images are resized and compressed automatically to keep files and links small.',
     editLinkLabel: 'Link (optional)',
     linkLabelPlaceholder: 'Link text, e.g. Watch clip',
     linkUrlPlaceholder: 'https://…',
-    linkHint: 'Give the link a short name (e.g. "Watch clip") and its full address (e.g. a YouTube URL). It appears as a clickable button on the question card.',
+    linkHint: 'Add a name and a URL (e.g. a YouTube link) \u2014 it shows as a button on the question.',
     defaultLinkText: 'Open link',
     questionPlaceholder: 'Type the question…', answerPlaceholder: 'Type the answer…',
     categoryPlaceholder: 'Category name',
     points: n => `${n} points`,
     clearConfirm: 'Clear all categories, questions and answers on the board?',
-    headerMismatch: 'The first row must contain category, question and answer exactly once each.',
-    emptyFile: 'The file contains no questions.',
-    rowColumns: (row, got, expected) => `Data row ${row} has ${got} columns; expected ${expected}.`,
-    rowEmpty: row => `Data row ${row} has an empty category, question or answer.`,
+    headerMismatch: 'The header row must contain category, question and answer exactly once each.',
+    emptyFile: 'The file contains no rows.',
+    rowColumns: (row, got, expected) => `Row ${row} has ${got} columns; expected ${expected}.`,
+    rowEmpty: row => `Row ${row} has no category name.`,
     categoryCount: n => `Found ${n} categories; exactly 6 are required.`,
     categoryQuestions: (name, n) => `Category "${name}" has ${n} questions; exactly 5 are required.`,
     newCategoryName: n => `Category ${n}`,
     templateCategory: n => `Category ${n}`,
     templateQuestion: (q, c) => `Question ${q} for category ${c}?`,
     templateAnswer: (q, c) => `Answer ${q} for category ${c}`,
-    csvFileName: 'jeopardy_template_en.csv', xlsxFileName: 'jeopardy_template_en.xlsx'
+    csvFileName: 'jeopardy_template_en.csv', xlsxFileName: 'jeopardy_template_en.xlsx',
+    exportCsvFileName: 'jeopardy_game_export.csv', exportXlsxFileName: 'jeopardy_game_export.xlsx'
   },
   pl: {
     brand: 'VA BANQUE!',
     editModeLabel: 'Tryb edycji',
-    editIntro: 'Tryb edycji jest włączony. Zaimportuj plik poniżej albo kliknij nazwę kategorii lub kafelek z punktami na planszy, aby wpisać własne pytania i odpowiedzi.',
+    editIntro: 'Zaimportuj plik poniżej albo kliknij nazwę kategorii lub kafelek z punktami, aby edytować go bezpośrednio.',
     titlePlaceholder: 'Wpisz tytuł gry', defaultTitle: 'Va banque!',
     chooseFile: 'Wybierz plik CSV lub XLSX', resetBoard: 'Zresetuj planszę', clearBoardBtn: 'Wyczyść planszę',
+    showTimerLabel: 'Pokaż licznik', timerSecondsLabel: 'Sekundy/pytanie',
     shareBtn: '🔗 Udostępnij', shareTitle: 'Udostępnij tę grę',
-    shareIntro: 'Ten link zawiera całą planszę — tytuł, kategorie, pytania, odpowiedzi i postęp gry — dzięki czemu każda osoba, która go otworzy, zobaczy tę samą grę. Link aktualizuje też adres tej strony, więc możesz go zapisać w zakładkach.',
-    includeImagesLabel: 'Dołącz obrazy do linku (może go bardzo wydłużyć)',
-    copyBtn: 'Skopiuj link', copiedMsg: 'Link skopiowany do schowka!',
-    copyFailMsg: 'Nie udało się skopiować automatycznie — zaznacz tekst powyżej i skopiuj go ręcznie.',
-    linkTooLongWarning: n => `Ten link jest bardzo długi (ok. ${n.toLocaleString('pl-PL')} znaków). Niektóre przeglądarki, aplikacje czy platformy mogą go obciąć lub odrzucić. Rozważ odznaczenie opcji „dołącz obrazy” albo usunięcie dużych obrazów z pytań.`,
+    shareIntro: 'Ten link to zdjęcie planszy z tego momentu — skopiuj go poniżej, aby udostępnić lub zapisać w zakładkach. Po zmianach kliknij Udostępnij ponownie, aby uzyskać nowy link.',
+    includeImagesLabel: 'Dołącz obrazy do linku',
+    includeImagesNote: 'Obrazy są najpierw kompresowane, ale bardzo długie linki mogą nie działać w niektórych przeglądarkach lub aplikacjach do czatu. Dla pewności z obrazami użyj eksportu.',
+    copyBtn: 'Skopiuj link', copiedMsg: 'Link skopiowany!',
+    copyFailMsg: 'Nie udało się skopiować — zaznacz link powyżej i skopiuj go ręcznie.',
+    linkTooLongWarning: n => `Ten link jest bardzo długi (~${n.toLocaleString('pl-PL')} znaków) i może nie działać wszędzie. Odznacz „dołącz obrazy” albo użyj eksportu.`,
+    addressBarWarning: 'Ten link jest za długi na pole adresu, ale wciąż jest prawidłowy — skopiuj i udostępnij go poniżej.',
     statusIdle: 'Plansza gotowa. Zaimportuj plik albo edytuj kafelki bezpośrednio.',
     statusRemaining: n => `Pozostało ${n} z 30 pytań.`,
-    statusLoaded: 'Plik wczytany. Tryb edycji jest wciąż włączony — wyłącz go, aby zacząć grę.',
+    statusLoaded: 'Plik wczytany. Wyłącz tryb edycji, aby zacząć grę.',
     statusSaved: 'Zapisano.',
     statusCleared: 'Plansza wyczyszczona.',
     stateRestored: 'Przywrócono grę z udostępnionego linku.',
     stateRestoreError: 'Nie udało się odczytać linku; zaczynamy z pustą planszą.',
     statusLoadError: (name, message) => `Nie udało się wczytać pliku „${name}”: ${message}`,
-    csvDecodeError: 'Nie udało się zdekodować pliku CSV. Zapisz go w kodowaniu UTF-8.',
+    csvDecodeError: 'Nie udało się wczytać pliku. Zapisz go w kodowaniu UTF-8 i spróbuj ponownie.',
     chooseFileError: 'Wybierz plik .csv lub .xlsx.',
     imageTypeError: 'Wybierz plik graficzny (PNG, JPEG, GIF, WEBP itd.).',
-    formatHelp: 'Oba formaty używają tych samych nagłówków w pierwszym wierszu: <code>category,question,answer</code>. Podaj dokładnie 6 różnych kategorii i po 5 pytań w każdej. Wiersze w każdej kategorii są warte od 100 do 500 punktów, w kolejności z pliku. Pliki CSV zapisuj w kodowaniu UTF-8; polskie znaki działają w obu formatach. W przypadku XLSX dane muszą znajdować się na pierwszym arkuszu.',
-    downloadIntro: 'Pobierz gotowy do edycji szablon z 30 przykładowymi pytaniami:',
+    imageCompressing: 'Kompresowanie obrazu…',
+    imageCompressError: 'Nie udało się przetworzyć tego obrazu. Wybierz inny plik.',
+    imageCompressedInfo: (originalKB, finalKB) => `Skompresowano z ~${originalKB} KB do ~${finalKB} KB`,
+    formatHelp: 'Kolumny: <code>category,question,answer</code> — 6 kategorii × 5 pytań. CSV musi być w UTF-8.',
+    exportHeading: 'Eksportuj grę',
+    exportIntro: 'Zapisuje wszystko — łącznie z obrazami i linkami — do pliku na kopię zapasową lub udostępnienie. (Nie zawiera postępu gry.)',
+    exportCSVBtn: 'Eksportuj jako CSV', exportXLSXBtn: 'Eksportuj jako XLSX',
+    templateHeading: 'Pusty szablon',
+    downloadIntro: 'Pusty punkt wyjścia z 30 pytaniami, tylko tekst.',
     downloadCSVBtn: 'Pobierz szablon CSV', downloadXLSXBtn: 'Pobierz szablon XLSX',
-    csvQuoteHelp: 'Pola CSV zawierające przecinki lub znaki nowej linii muszą być otoczone znakami cudzysłowu. Aby wpisać znak cudzysłowu wewnątrz takiego pola, zapisz go dwukrotnie.',
+    csvExtraColumnsHelp: 'Opcjonalne kolumny: <code>image</code>, <code>link_label</code>, <code>link_url</code> — wyeksportowane pliki zawierają je automatycznie.',
     answerLabel: 'Odpowiedź', revealBtn: 'Pokaż odpowiedź', closeBtn: 'Zamknij',
     editQuestionLabel: 'Pytanie', editAnswerLabel: 'Odpowiedź', saveBtn: 'Zapisz', cancelBtn: 'Anuluj',
     editImageLabel: 'Obraz (opcjonalnie)', chooseImage: 'Wybierz obraz', removeImageBtn: 'Usuń obraz',
+    imageCompressHint: 'Obrazy są automatycznie zmniejszane i kompresowane, aby pliki i linki były małe.',
     editLinkLabel: 'Link (opcjonalnie)',
     linkLabelPlaceholder: 'Nazwa linku, np. Zobacz film',
     linkUrlPlaceholder: 'https://…',
-    linkHint: 'Podaj krótką nazwę linku (np. „Zobacz film”) i jego pełny adres (np. link do YouTube). Pojawi się jako klikalny przycisk na karcie pytania.',
+    linkHint: 'Podaj nazwę i adres URL (np. link do YouTube) — pojawi się jako przycisk na pytaniu.',
     defaultLinkText: 'Otwórz link',
     questionPlaceholder: 'Wpisz pytanie…', answerPlaceholder: 'Wpisz odpowiedź…',
     categoryPlaceholder: 'Nazwa kategorii',
     points: n => `${n} punktów`,
     clearConfirm: 'Wyczyścić wszystkie kategorie, pytania i odpowiedzi na planszy?',
-    headerMismatch: 'Pierwszy wiersz musi zawierać kolumny category, question i answer, każdą dokładnie jeden raz.',
-    emptyFile: 'Plik nie zawiera żadnych pytań.',
-    rowColumns: (row, got, expected) => `Wiersz danych ${row} ma ${got} kolumn; oczekiwano ${expected}.`,
-    rowEmpty: row => `Wiersz danych ${row} ma puste pole category, question lub answer.`,
+    headerMismatch: 'Wiersz nagłówka musi zawierać category, question i answer, każdą dokładnie jeden raz.',
+    emptyFile: 'Plik nie zawiera żadnych wierszy.',
+    rowColumns: (row, got, expected) => `Wiersz ${row} ma ${got} kolumn; oczekiwano ${expected}.`,
+    rowEmpty: row => `Wiersz ${row} nie ma nazwy kategorii.`,
     categoryCount: n => `Znaleziono ${n} kategorii; wymagane jest dokładnie 6.`,
     categoryQuestions: (name, n) => `Kategoria „${name}” ma ${n} pytań; wymagane jest dokładnie 5.`,
     newCategoryName: n => `Kategoria ${n}`,
     templateCategory: n => `Kategoria ${n}`,
     templateQuestion: (q, c) => `Pytanie ${q} z kategorii ${c}?`,
     templateAnswer: (q, c) => `Odpowiedź ${q} z kategorii ${c}`,
-    csvFileName: 'va_banque_szablon_pl.csv', xlsxFileName: 'va_banque_szablon_pl.xlsx'
+    csvFileName: 'va_banque_szablon_pl.csv', xlsxFileName: 'va_banque_szablon_pl.xlsx',
+    exportCsvFileName: 'va_banque_eksport.csv', exportXlsxFileName: 'va_banque_eksport.xlsx'
   }
 };
 function t() { return STRINGS[lang]; }
@@ -447,6 +516,35 @@ function renderBoard() {
   }
 }
 
+/* ---------- Countdown timer (clock-style M:SS display) ---------- */
+function formatTimer(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+function startTimer() {
+  stopTimer();
+  const badge = $('timerBadge');
+  if (!timerEnabled) { badge.hidden = true; return; }
+  let remaining = timerSeconds;
+  badge.hidden = false;
+  badge.classList.remove('timer-expired');
+  $('timerValue').textContent = formatTimer(remaining);
+  timerInterval = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      $('timerValue').textContent = formatTimer(0);
+      badge.classList.add('timer-expired');
+      stopTimer();
+    } else {
+      $('timerValue').textContent = formatTimer(remaining);
+    }
+  }, 1000);
+}
+
 /* ---------- Reveal dialog ---------- */
 function openReveal(c, r, points, tile) {
   removed.add(`${c}-${r}`);
@@ -471,6 +569,7 @@ function openReveal(c, r, points, tile) {
   $('reveal').hidden = false;
   $('modal').showModal();
   $('reveal').focus();
+  startTimer();
 }
 
 /* ---------- Edit dialog ---------- */
@@ -493,6 +592,57 @@ function updateImagePreview() {
   $('editImageRemove').hidden = !hasImage;
   if (hasImage) $('editImagePreview').src = editingImage;
   else $('editImagePreview').removeAttribute('src');
+}
+
+/* ---------- Image compression (resize + re-encode as JPEG) ----------
+   Runs entirely in the browser via <canvas>; no data leaves the page.
+   Shrinks typical phone photos (several MB) down to roughly tens of KB. */
+function loadImageElement(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('image-load-failed'));
+    img.src = dataUrl;
+  });
+}
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('file-read-failed'));
+    reader.readAsDataURL(file);
+  });
+}
+function dataUrlApproxBytes(dataUrl) {
+  const base64Length = dataUrl.length - (dataUrl.indexOf(',') + 1);
+  return Math.round(base64Length * 0.75);
+}
+async function compressImageFile(file, maxDimension = 900, targetBytes = 140000) {
+  const original = await readFileAsDataURL(file);
+  const img = await loadImageElement(original);
+  let { width, height } = img;
+  if (width <= 0 || height <= 0) throw new Error('image-decode-failed');
+  const scale = Math.min(1, maxDimension / Math.max(width, height));
+  width = Math.max(1, Math.round(width * scale));
+  height = Math.max(1, Math.round(height * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+
+  let quality = 0.78;
+  let out = canvas.toDataURL('image/jpeg', quality);
+  let attempts = 0;
+  while (dataUrlApproxBytes(out) > targetBytes && quality > 0.3 && attempts < 7) {
+    quality -= 0.1;
+    out = canvas.toDataURL('image/jpeg', quality);
+    attempts++;
+  }
+  return { dataUrl: out, originalBytes: file.size, finalBytes: dataUrlApproxBytes(out) };
 }
 
 /* ---------- CSV parsing ---------- */
@@ -529,19 +679,31 @@ function parseCSV(input) {
   return rows.filter(r => r.some(cell => cell.trim()));
 }
 
+/* Parses rows into 6 categories x 5 questions. Recognizes optional "image", "link_label" and
+   "link_url" columns in addition to the required "category", "question", "answer" columns, so
+   exported files round-trip images and links. Only the category name is required per row —
+   question/answer may be blank, representing a tile that's still being written. */
 function parseGame(rows) {
   if (!rows.length) throw new Error(t().emptyFile);
   const header = rows[0].map(h => String(h).trim().toLowerCase());
   const required = ['category', 'question', 'answer'];
   if (required.some(h => header.filter(x => x === h).length !== 1)) throw new Error(t().headerMismatch);
-  const positions = required.map(h => header.indexOf(h));
+  const [categoryPos, questionPos, answerPos] = required.map(h => header.indexOf(h));
+  const imagePos = header.indexOf('image');
+  const linkLabelPos = header.indexOf('link_label');
+  const linkUrlPos = header.indexOf('link_url');
   const groups = new Map();
   rows.slice(1).forEach((row, i) => {
     if (row.length !== header.length) throw new Error(t().rowColumns(i + 2, row.length, header.length));
-    const [category, question, answer] = positions.map(p => String(row[p]).trim());
-    if (!category || !question || !answer) throw new Error(t().rowEmpty(i + 2));
+    const category = String(row[categoryPos]).trim();
+    if (!category) throw new Error(t().rowEmpty(i + 2));
+    const question = String(row[questionPos]).trim();
+    const answer = String(row[answerPos]).trim();
+    const image = imagePos >= 0 ? String(row[imagePos]).trim() || null : null;
+    const linkUrl = linkUrlPos >= 0 ? String(row[linkUrlPos]).trim() : '';
+    const link = linkUrl ? { label: linkLabelPos >= 0 ? String(row[linkLabelPos]).trim() : '', url: linkUrl } : null;
     if (!groups.has(category)) groups.set(category, []);
-    groups.get(category).push({ question, answer, image: null, link: null });
+    groups.get(category).push({ question, answer, image, link });
   });
   if (groups.size !== 6) throw new Error(t().categoryCount(groups.size));
   for (const [name, items] of groups) if (items.length !== 5) throw new Error(t().categoryQuestions(name, items.length));
@@ -754,7 +916,7 @@ function parseXLSX(bytes) {
   return rows.map(r => Array.from({ length: width }, (_, i) => r[i] ?? ''));
 }
 
-/* ---------- Template generation (CSV + XLSX) ---------- */
+/* ---------- Row generation for template + export (CSV + XLSX) ---------- */
 function templateRows() {
   const s = t();
   const rows = [['category', 'question', 'answer']];
@@ -762,6 +924,20 @@ function templateRows() {
     for (let q = 1; q <= 5; q++) {
       const category = s.templateCategory(c);
       rows.push([category, s.templateQuestion(q, category), s.templateAnswer(q, category)]);
+    }
+  }
+  return rows;
+}
+/* Full export of the current board: the 3 required columns plus image/link_label/link_url so
+   the file round-trips perfectly through "Choose CSV or XLSX" later, images included. Blank
+   tiles export as empty question/answer cells, which parseGame accepts on the way back in. */
+function exportRows() {
+  const rows = [['category', 'question', 'answer', 'image', 'link_label', 'link_url']];
+  for (let r = 0; r < 5; r++) {
+    for (const cat of state) {
+      const q = cat.questions[r];
+      const link = q.link || {};
+      rows.push([cat.name, q.question, q.answer, q.image || '', link.label || '', link.url || '']);
     }
   }
   return rows;
@@ -775,6 +951,10 @@ function saveBlob(blob, name) {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function rowsToCSV(rows) {
+  const quote = x => /[",\r\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x;
+  return '\uFEFF' + rows.map(row => row.map(quote).join(',')).join('\r\n') + '\r\n';
 }
 function escapeXML(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
@@ -841,11 +1021,18 @@ function makeXLSX(rows) {
   });
 }
 
-/* ---------- Share-link encoding ---------- */
+/* ---------- Share-link encoding ----------
+   The whole payload (JSON) is converted to UTF-8 bytes, then base64url-encoded in a single pass.
+   This does not leave question/answer text readable at a glance in the URL — it looks like an
+   opaque token, not plain sentences. It is still just an encoding, not encryption. The link is a
+   one-time snapshot: it does not keep updating itself as the board changes afterward. */
 function toBase64Url(obj) {
   const bytes = textEncoder.encode(JSON.stringify(obj));
   let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 function fromBase64Url(str) {
@@ -877,11 +1064,24 @@ function refreshShareLink() {
   const includeImages = $('shareIncludeImages').checked;
   const encoded = toBase64Url(buildSharePayload(includeImages));
   const url = `${location.origin}${location.pathname}${location.search}#${encoded}`;
-  history.replaceState(null, '', `#${encoded}`);
+
+  // Always show/copy the correct link first. Only AFTER that, try to also reflect it in the
+  // visible address bar — some browsers refuse very long history entries, but that must never
+  // block the user from seeing and copying the real, complete link.
   $('shareLinkInput').value = url;
   $('shareStatus').textContent = '';
-  $('shareWarning').hidden = url.length <= 8000;
-  if (!$('shareWarning').hidden) $('shareWarning').textContent = t().linkTooLongWarning(url.length);
+  let addressBarFailed = false;
+  try {
+    history.replaceState(null, '', `#${encoded}`);
+  } catch {
+    addressBarFailed = true;
+  }
+
+  const warnings = [];
+  if (url.length > 8000) warnings.push(t().linkTooLongWarning(url.length));
+  if (addressBarFailed) warnings.push(t().addressBarWarning);
+  $('shareWarning').hidden = warnings.length === 0;
+  $('shareWarning').textContent = warnings.join(' ');
 }
 function tryRestoreFromHash() {
   const hash = location.hash.slice(1);
@@ -922,6 +1122,15 @@ $('titleInputGame').addEventListener('input', () => {
   $('gameTitle').textContent = $('titleInputGame').value.trim() || t().defaultTitle;
 });
 
+$('timerEnabledInput').addEventListener('change', e => { timerEnabled = e.target.checked; });
+$('timerSecondsInput').addEventListener('change', e => {
+  let value = parseInt(e.target.value, 10);
+  if (!Number.isFinite(value)) value = 30;
+  value = Math.min(300, Math.max(3, value));
+  timerSeconds = value;
+  e.target.value = value;
+});
+
 $('questionFile').addEventListener('change', async event => {
   const file = event.target.files[0];
   if (!file) return;
@@ -957,7 +1166,9 @@ $('reset').addEventListener('click', () => {
   renderBoard();
 });
 
+$('modal').addEventListener('close', stopTimer);
 $('reveal').addEventListener('click', () => {
+  stopTimer();
   $('answerBox').hidden = false;
   $('reveal').hidden = true;
   $('close').focus();
@@ -967,16 +1178,36 @@ $('close').addEventListener('click', () => {
   $('modalImage').removeAttribute('src');
 });
 
-$('editImageFile').addEventListener('change', event => {
+$('editImageFile').addEventListener('change', async event => {
   const file = event.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showStatus(t().imageTypeError, true); event.target.value = ''; return; }
-  const reader = new FileReader();
-  reader.onload = () => { editingImage = reader.result; updateImagePreview(); };
-  reader.readAsDataURL(file);
-  event.target.value = '';
+  const sizeInfo = $('editImageSizeInfo');
+  $('editImageFile').disabled = true;
+  $('editSave').disabled = true;
+  sizeInfo.hidden = false;
+  sizeInfo.textContent = t().imageCompressing;
+  try {
+    const result = await compressImageFile(file);
+    editingImage = result.dataUrl;
+    updateImagePreview();
+    const originalKB = Math.max(1, Math.round(result.originalBytes / 1024));
+    const finalKB = Math.max(1, Math.round(result.finalBytes / 1024));
+    sizeInfo.textContent = t().imageCompressedInfo(originalKB, finalKB);
+  } catch {
+    sizeInfo.hidden = true;
+    showStatus(t().imageCompressError, true);
+  } finally {
+    $('editImageFile').disabled = false;
+    $('editSave').disabled = false;
+    event.target.value = '';
+  }
 });
-$('editImageRemove').addEventListener('click', () => { editingImage = null; updateImagePreview(); });
+$('editImageRemove').addEventListener('click', () => {
+  editingImage = null;
+  updateImagePreview();
+  $('editImageSizeInfo').hidden = true;
+});
 $('editSave').addEventListener('click', () => {
   const { c, r } = editingTarget;
   const url = $('editLinkUrlInput').value.trim();
@@ -994,12 +1225,16 @@ $('editSave').addEventListener('click', () => {
 $('editCancel').addEventListener('click', () => $('editModal').close());
 
 $('downloadCSV').addEventListener('click', () => {
-  const quote = x => /[",\r\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x;
-  const text = '\uFEFF' + templateRows().map(row => row.map(quote).join(',')).join('\r\n') + '\r\n';
-  saveBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), t().csvFileName);
+  saveBlob(new Blob([rowsToCSV(templateRows())], { type: 'text/csv;charset=utf-8' }), t().csvFileName);
 });
 $('downloadXLSX').addEventListener('click', () => {
   saveBlob(new Blob([makeXLSX(templateRows())], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), t().xlsxFileName);
+});
+$('exportCSV').addEventListener('click', () => {
+  saveBlob(new Blob([rowsToCSV(exportRows())], { type: 'text/csv;charset=utf-8' }), t().exportCsvFileName);
+});
+$('exportXLSX').addEventListener('click', () => {
+  saveBlob(new Blob([makeXLSX(exportRows())], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), t().exportXlsxFileName);
 });
 
 $('shareBtn').addEventListener('click', () => { $('shareModal').showModal(); refreshShareLink(); });
