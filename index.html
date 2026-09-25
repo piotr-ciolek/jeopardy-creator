@@ -157,15 +157,15 @@ dialog::backdrop { background: #030719; }
       <label for="questionFile" class="upload"><span data-i18n="chooseFile">Choose CSV or XLSX</span><input id="questionFile" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
       <button id="clearBoard" class="action danger" type="button" data-i18n="clearBoardBtn">Clear board</button>
       <label class="edit-toggle"><input type="checkbox" id="timerEnabledInput" checked><span data-i18n="showTimerLabel">Show timer</span></label>
-      <label class="field-inline"><span data-i18n="timerSecondsLabel">Seconds/question</span><input id="timerSecondsInput" type="number" min="3" max="300" value="30"></label>
+      <label class="field-inline"><span data-i18n="timerSecondsLabel">Seconds per question (3–300)</span><input id="timerSecondsInput" type="number" inputmode="numeric" pattern="[0-9]*" step="1" min="3" max="300" value="30"></label>
     </div>
     <p id="status" role="status" aria-live="polite" data-i18n="statusIdle">Board ready. Import a file or edit tiles directly.</p>
-    <p data-i18n="formatHelp">Columns: <code>category,question,answer</code> — 6 categories × 5 questions. CSV must be UTF-8.</p>
+    <p data-i18n="formatHelp">Columns <code>category,question,answer</code> — 6 categories × 5 questions. CSV must be UTF-8.</p>
 
     <div class="panel-columns">
       <div>
         <h2 data-i18n="exportHeading">Export your game</h2>
-        <p data-i18n="exportIntro">Saves everything — including images and links — for backup or sharing. (Doesn't include play progress.)</p>
+        <p data-i18n="exportIntro">Saves everything — including images and links — for backup or sharing. Doesn't include play progress.</p>
         <div class="downloads">
           <button id="exportCSV" class="action export" type="button" data-i18n="exportCSVBtn">Export as CSV</button>
           <button id="exportXLSX" class="action export" type="button" data-i18n="exportXLSXBtn">Export as XLSX</button>
@@ -180,7 +180,7 @@ dialog::backdrop { background: #030719; }
         </div>
       </div>
     </div>
-    <p data-i18n="csvExtraColumnsHelp">Optional columns: <code>image</code>, <code>link_label</code>, <code>link_url</code> — exported files include them automatically.</p>
+    <p data-i18n="csvExtraColumnsHelp">Optional columns <code>image</code>, <code>link_label</code>, <code>link_url</code> — exported files include them automatically.</p>
   </section>
 
   <section class="game">
@@ -193,7 +193,7 @@ dialog::backdrop { background: #030719; }
 </div>
 
 <dialog id="modal" aria-labelledby="modalMeta" aria-describedby="modalQuestion">
-  <div id="timerBadge" hidden aria-label="Time remaining"><span class="timer-icon">⏱</span><span id="timerValue">0:30</span></div>
+  <div id="timerBadge" hidden aria-label="Time remaining"><span class="timer-icon">⏱️</span><span id="timerValue">0:30</span></div>
   <div class="modal-inner">
     <div id="modalMeta"></div>
     <img id="modalImage" alt="" hidden>
@@ -288,7 +288,7 @@ const STRINGS = {
     editIntro: 'Import a file below, or click a category name or a point tile on the board to edit it directly.',
     titlePlaceholder: 'Enter a game title', defaultTitle: 'Jeopardy!',
     chooseFile: 'Choose CSV or XLSX', resetBoard: 'Reset game board', clearBoardBtn: 'Clear board',
-    showTimerLabel: 'Show timer', timerSecondsLabel: 'Seconds/question',
+    showTimerLabel: 'Show timer', timerSecondsLabel: 'Seconds per question (3\u2013300)',
     shareBtn: '🔗 Share', shareTitle: 'Share this game',
     shareIntro: 'This link is a snapshot of your board right now \u2014 copy it below to share or bookmark. Click Share again after making changes to get an updated link.',
     includeImagesLabel: 'Include images in the link',
@@ -311,14 +311,14 @@ const STRINGS = {
     imageCompressing: 'Compressing image…',
     imageCompressError: 'Could not process that image. Try a different file.',
     imageCompressedInfo: (originalKB, finalKB) => `Compressed from ~${originalKB} KB to ~${finalKB} KB`,
-    formatHelp: 'Columns: <code>category,question,answer</code> \u2014 6 categories \u00d7 5 questions. CSV must be UTF-8.',
+    formatHelp: 'Columns <code>category,question,answer</code> \u2014 6 categories \u00d7 5 questions. CSV must be UTF-8.',
     exportHeading: 'Export your game',
-    exportIntro: 'Saves everything \u2014 including images and links \u2014 for backup or sharing. (Doesn\u2019t include play progress.)',
+    exportIntro: 'Saves everything \u2014 including images and links \u2014 for backup or sharing. Doesn\u2019t include play progress.',
     exportCSVBtn: 'Export as CSV', exportXLSXBtn: 'Export as XLSX',
     templateHeading: 'Blank template',
     downloadIntro: 'A blank 30-question starting point, text only.',
     downloadCSVBtn: 'Download CSV template', downloadXLSXBtn: 'Download XLSX template',
-    csvExtraColumnsHelp: 'Optional columns: <code>image</code>, <code>link_label</code>, <code>link_url</code> \u2014 exported files include them automatically.',
+    csvExtraColumnsHelp: 'Optional columns <code>image</code>, <code>link_label</code>, <code>link_url</code> \u2014 exported files include them automatically.',
     answerLabel: 'Answer', revealBtn: 'Reveal answer', closeBtn: 'Close',
     editQuestionLabel: 'Question', editAnswerLabel: 'Answer', saveBtn: 'Save', cancelBtn: 'Cancel',
     editImageLabel: 'Image (optional)', chooseImage: 'Choose image', removeImageBtn: 'Remove image',
@@ -348,17 +348,17 @@ const STRINGS = {
   pl: {
     brand: 'VA BANQUE!',
     editModeLabel: 'Tryb edycji',
-    editIntro: 'Zaimportuj plik poniżej albo kliknij nazwę kategorii lub kafelek z punktami, aby edytować go bezpośrednio.',
+    editIntro: 'Zaimportuj plik poniżej albo kliknij nazwę kategorii lub kafelek z punktami, aby go edytować.',
     titlePlaceholder: 'Wpisz tytuł gry', defaultTitle: 'Va banque!',
     chooseFile: 'Wybierz plik CSV lub XLSX', resetBoard: 'Zresetuj planszę', clearBoardBtn: 'Wyczyść planszę',
-    showTimerLabel: 'Pokaż licznik', timerSecondsLabel: 'Sekundy/pytanie',
+    showTimerLabel: 'Pokaż licznik', timerSecondsLabel: 'Sekundy na pytanie (3\u2013300)',
     shareBtn: '🔗 Udostępnij', shareTitle: 'Udostępnij tę grę',
-    shareIntro: 'Ten link to zdjęcie planszy z tego momentu — skopiuj go poniżej, aby udostępnić lub zapisać w zakładkach. Po zmianach kliknij Udostępnij ponownie, aby uzyskać nowy link.',
+    shareIntro: 'Ten link zapisuje aktualny stan planszy — skopiuj go poniżej, aby go udostępnić lub zapisać w zakładkach. Jeśli coś zmienisz, kliknij Udostępnij ponownie, aby uzyskać nowy link.',
     includeImagesLabel: 'Dołącz obrazy do linku',
-    includeImagesNote: 'Obrazy są najpierw kompresowane, ale bardzo długie linki mogą nie działać w niektórych przeglądarkach lub aplikacjach do czatu. Dla pewności z obrazami użyj eksportu.',
+    includeImagesNote: 'Obrazy są najpierw kompresowane, ale bardzo długie linki mogą nie działać w niektórych przeglądarkach lub aplikacjach do czatu. Aby mieć pewność, że obrazy zadziałają, użyj opcji Eksportuj.',
     copyBtn: 'Skopiuj link', copiedMsg: 'Link skopiowany!',
     copyFailMsg: 'Nie udało się skopiować — zaznacz link powyżej i skopiuj go ręcznie.',
-    linkTooLongWarning: n => `Ten link jest bardzo długi (~${n.toLocaleString('pl-PL')} znaków) i może nie działać wszędzie. Odznacz „dołącz obrazy” albo użyj eksportu.`,
+    linkTooLongWarning: n => `Ten link jest bardzo długi (~${n.toLocaleString('pl-PL')} znaków) i może nie działać wszędzie. Odznacz opcję „Dołącz obrazy do linku” albo użyj opcji Eksportuj.`,
     addressBarWarning: 'Ten link jest za długi na pole adresu, ale wciąż jest prawidłowy — skopiuj i udostępnij go poniżej.',
     statusIdle: 'Plansza gotowa. Zaimportuj plik albo edytuj kafelki bezpośrednio.',
     statusRemaining: n => `Pozostało ${n} z 30 pytań.`,
@@ -374,14 +374,14 @@ const STRINGS = {
     imageCompressing: 'Kompresowanie obrazu…',
     imageCompressError: 'Nie udało się przetworzyć tego obrazu. Wybierz inny plik.',
     imageCompressedInfo: (originalKB, finalKB) => `Skompresowano z ~${originalKB} KB do ~${finalKB} KB`,
-    formatHelp: 'Kolumny: <code>category,question,answer</code> — 6 kategorii × 5 pytań. CSV musi być w UTF-8.',
+    formatHelp: 'Kolumny <code>category,question,answer</code> — 6 kategorii × 5 pytań. CSV musi być w UTF-8.',
     exportHeading: 'Eksportuj grę',
-    exportIntro: 'Zapisuje wszystko — łącznie z obrazami i linkami — do pliku na kopię zapasową lub udostępnienie. (Nie zawiera postępu gry.)',
+    exportIntro: 'Zapisuje wszystko — łącznie z obrazami i linkami — do pliku, który możesz zachować albo udostępnić. Nie obejmuje postępu gry.',
     exportCSVBtn: 'Eksportuj jako CSV', exportXLSXBtn: 'Eksportuj jako XLSX',
     templateHeading: 'Pusty szablon',
-    downloadIntro: 'Pusty punkt wyjścia z 30 pytaniami, tylko tekst.',
+    downloadIntro: 'Pusty punkt wyjścia — 30 przykładowych pytań, tylko tekst.',
     downloadCSVBtn: 'Pobierz szablon CSV', downloadXLSXBtn: 'Pobierz szablon XLSX',
-    csvExtraColumnsHelp: 'Opcjonalne kolumny: <code>image</code>, <code>link_label</code>, <code>link_url</code> — wyeksportowane pliki zawierają je automatycznie.',
+    csvExtraColumnsHelp: 'Opcjonalne kolumny <code>image</code>, <code>link_label</code>, <code>link_url</code> — wyeksportowane pliki zawierają je automatycznie.',
     answerLabel: 'Odpowiedź', revealBtn: 'Pokaż odpowiedź', closeBtn: 'Zamknij',
     editQuestionLabel: 'Pytanie', editAnswerLabel: 'Odpowiedź', saveBtn: 'Zapisz', cancelBtn: 'Anuluj',
     editImageLabel: 'Obraz (opcjonalnie)', chooseImage: 'Wybierz obraz', removeImageBtn: 'Usuń obraz',
@@ -1123,6 +1123,11 @@ $('titleInputGame').addEventListener('input', () => {
 });
 
 $('timerEnabledInput').addEventListener('change', e => { timerEnabled = e.target.checked; });
+// Strip any non-digit character immediately, so only whole numbers can ever be typed.
+$('timerSecondsInput').addEventListener('input', e => {
+  const digitsOnly = e.target.value.replace(/[^0-9]/g, '');
+  if (digitsOnly !== e.target.value) e.target.value = digitsOnly;
+});
 $('timerSecondsInput').addEventListener('change', e => {
   let value = parseInt(e.target.value, 10);
   if (!Number.isFinite(value)) value = 30;
