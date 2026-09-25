@@ -24,10 +24,10 @@ button:focus-visible, .upload:focus-within, input:focus-visible, textarea:focus-
 .edit-toggle input { width: 20px; height: 20px; accent-color: #ffdc83; }
 .reset-btn { min-height: 44px; padding: 8px 16px; border-radius: 9px; border: 1px solid #8494c5; background: #294075; color: white; }
 .reset-btn:hover:not(:disabled) { background: #39548e; }
-.lang-switch { display: flex; border: 1px solid #7384b9; border-radius: 9px; overflow: hidden; }
-.lang-btn { min-height: 44px; padding: 8px 16px; border: 0; background: #243667; color: #e5ebff; }
-.lang-btn[aria-pressed=true] { background: #ffdc83; color: #10182d; }
-.lang-btn:hover:not([aria-pressed=true]) { background: #334c8c; }
+.lang-switch, .round-tabs { display: flex; border: 1px solid #7384b9; border-radius: 9px; overflow: hidden; flex: none; }
+.lang-btn, .round-tab { min-height: 44px; padding: 8px 16px; border: 0; background: #243667; color: #e5ebff; font-weight: 750; white-space: nowrap; }
+.lang-btn[aria-pressed=true], .round-tab[aria-selected=true] { background: #ffdc83; color: #10182d; }
+.lang-btn:hover:not([aria-pressed=true]), .round-tab:hover:not([aria-selected=true]) { background: #334c8c; }
 
 /* ---------- Creator / edit panel ---------- */
 .edit-panel { width: min(1100px, calc(100% - 36px)); margin: 22px auto 0; padding: clamp(16px, 3vw, 26px); background: #15214b; border: 1px solid #445783; border-radius: 16px; }
@@ -55,11 +55,15 @@ code { color: #ffe1a0; }
 
 /* ---------- Game board ---------- */
 .game { flex: 1; min-height: 0; padding: 7px; display: flex; flex-direction: column; }
-.game-head { flex: none; display: flex; align-items: center; justify-content: center; padding: 6px 12px 12px; }
+/* Title is centered inside a flex:1 wrapper, so the round tabs — placed after it in the
+   flex row — are naturally pushed all the way to the right edge of the screen. */
+.game-head { flex: none; display: flex; align-items: center; gap: 14px; padding: 6px 12px 12px; }
+.game-title-wrap { flex: 1; min-width: 0; display: flex; justify-content: center; }
 .game-title { margin: 0; text-align: center; font-size: clamp(1.5rem, 2.6vw, 2.8rem); line-height: 1.15; font-weight: 850; overflow-wrap: anywhere; }
 #titleInputGame { font-size: clamp(1.3rem, 2.2vw, 2.2rem); font-weight: 850; text-align: center; padding: 8px 14px; border: 1px solid #8494c5; border-radius: 8px; background: #0b1535; color: white; min-width: 260px; max-width: 90vw; }
 .board-scroll { flex: 1; min-height: 0; width: 100%; overflow-x: auto; }
 .board { display: grid; grid-template-columns: repeat(6, minmax(140px, 1fr)); grid-template-rows: minmax(80px, 1.12fr) repeat(5, minmax(70px, 1fr)); gap: clamp(4px, .65vw, 10px); width: 100%; min-width: 875px; height: max(520px, calc(100dvh - 165px)); min-height: max(520px, calc(100dvh - 165px)); padding: clamp(4px, .65vw, 10px); background: #0c1a50; border: 1px solid #354a92; border-radius: 12px; }
+.board.final-mode { grid-template-columns: 1fr; grid-template-rows: 1fr; }
 .category { display: grid; place-items: center; min-width: 0; padding: 6px; background: #102a86; text-align: center; overflow-wrap: anywhere; }
 .category-text { text-transform: uppercase; font-size: clamp(1rem, 1.6vw, 1.65rem); font-weight: 850; white-space: pre-wrap; }
 .category-input { width: 100%; height: 100%; border: 2px dashed #5f79c9; border-radius: 8px; background: #0c1e6e; color: #ffdc83; text-align: center; text-transform: uppercase; font-size: clamp(.85rem, 1.3vw, 1.3rem); font-weight: 850; padding: 6px; resize: none; overflow-y: auto; line-height: 1.25; }
@@ -68,6 +72,13 @@ code { color: #ffe1a0; }
 .tile:hover, .tile:focus-visible { background: #2855d0; outline: 4px solid #ffdb80; outline-offset: -4px; }
 .tile.tile-empty { background: repeating-linear-gradient(135deg, #153dad, #153dad 10px, #1c47bf 10px, #1c47bf 20px); outline: 2px dashed #6c85d6; outline-offset: -6px; }
 .empty { background: #0c1a50; }
+
+/* Final-round tile: a single large tile. Same font/weight as regular tiles (no italics,
+   both words the same size) — the only thing that marks it as special is the glow animation. */
+.final-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 1vh, 10px); background: linear-gradient(135deg, #153dad, #2f4fd0); }
+.final-tile:hover, .final-tile:focus-visible { background: linear-gradient(135deg, #2855d0, #4166e6); }
+.final-tile-word1, .final-tile-word2 { font-size: clamp(2.2rem, 5.5vw, 4.2rem); font-weight: 900; letter-spacing: .03em; color: #ffdb80; animation: finalGlow 2.4s ease-in-out infinite alternate; }
+@keyframes finalGlow { from { text-shadow: 0 0 12px rgba(255, 220, 131, .35), 2px 3px 4px #08133d; } to { text-shadow: 0 0 28px rgba(255, 220, 131, .85), 2px 3px 4px #08133d; } }
 
 /* ---------- Dialogs (shared) ----------
    .modal-inner is the scroll region for a dialog's main content. .modal-actions is a
@@ -83,9 +94,9 @@ dialog::backdrop { background: #030719; }
 .primary { border: 0; background: #ffdc83; color: #111a2e; }
 .primary:hover { background: #ffebb3; }
 
-/* Category · points badge, pinned to the top-right corner of the reveal and edit dialogs
-   (mirrors the timer badge in the opposite corner) instead of sitting inline in the flow,
-   so the question/answer content can start higher up the page with room to breathe. */
+/* Category · points (or "FINAL QUESTION") badge, pinned to the top-right corner of the
+   reveal and edit dialogs (mirrors the timer badge in the opposite corner) instead of
+   sitting inline in the flow, so content can start higher up the page with room to breathe. */
 #modalMeta, #editMeta { position: fixed; top: clamp(14px, 3vh, 30px); right: clamp(14px, 3vw, 30px); z-index: 5; max-width: min(62vw, 440px); padding: 10px 18px; border-radius: 999px; border: 2px solid #7487bd; background: #152358; color: #ffdb80; font-size: clamp(1rem, 1.8vw, 1.45rem); font-weight: 850; text-transform: uppercase; text-align: right; overflow-wrap: anywhere; }
 #modal .modal-inner, #editModal .modal-inner { justify-content: flex-start; padding-top: clamp(64px, 10vh, 110px); }
 
@@ -134,7 +145,8 @@ dialog::backdrop { background: #030719; }
 @media (max-width: 620px) {
   .topbar { min-height: 62px; }
   .brand { font-size: 1.1rem; }
-  .lang-btn, .reset-btn { min-height: 39px; padding: 7px 10px; font-size: .9rem; }
+  .lang-btn, .reset-btn, .round-tab { min-height: 39px; padding: 7px 10px; font-size: .9rem; }
+  .game-head { flex-wrap: wrap; justify-content: center; }
   .board { height: max(480px, calc(100dvh - 175px)); min-height: max(480px, calc(100dvh - 175px)); }
   dialog { padding: 16px; }
   #modalQuestion { font-size: clamp(2.3rem, 9vw, 4rem); }
@@ -173,6 +185,7 @@ dialog::backdrop { background: #030719; }
     </div>
     <p id="status" role="status" aria-live="polite" data-i18n="statusIdle">Board ready. Import a file or edit tiles directly.</p>
     <p data-i18n="formatHelp">Columns <code>category,question,answer</code> — 6 categories × 5 questions. CSV must be UTF-8.</p>
+    <p data-i18n="finalRowHelp">A row with category <code>Final</code> is the Final question.</p>
 
     <div class="panel-columns">
       <div>
@@ -197,8 +210,14 @@ dialog::backdrop { background: #030719; }
 
   <section class="game">
     <div class="game-head">
-      <h1 id="gameTitle" class="game-title"></h1>
-      <input id="titleInputGame" type="text" maxlength="120" hidden>
+      <div class="game-title-wrap">
+        <h1 id="gameTitle" class="game-title"></h1>
+        <input id="titleInputGame" type="text" maxlength="120" hidden>
+      </div>
+      <div class="round-tabs" role="tablist" aria-label="Round">
+        <button id="tabRound1" class="round-tab" type="button" role="tab" aria-selected="true" data-i18n="round1Tab">Round 1</button>
+        <button id="tabFinal" class="round-tab" type="button" role="tab" aria-selected="false" data-i18n="finalTab">Final</button>
+      </div>
     </div>
     <div class="board-scroll"><div id="board" class="board" aria-label="Jeopardy game board"></div></div>
   </section>
@@ -276,6 +295,7 @@ dialog::backdrop { background: #030719; }
 'use strict';
 const $ = id => document.getElementById(id);
 const textEncoder = new TextEncoder();
+const FINAL_CATEGORY_KEYWORD = 'final'; // reserved, case-insensitive, in CSV/XLSX "category" column
 
 /* ---------- App state ---------- */
 let lang = 'en';
@@ -286,6 +306,9 @@ let removed = new Set();
 let state = null;
 let editingTarget = null;
 let editingImage = null;
+let activeTab = 'round1'; // 'round1' | 'final'
+let finalQuestion = null;
+let finalRevealed = false;
 
 /* Timer settings are a live session preference, not saved to export/share payloads. */
 let timerEnabled = true;
@@ -301,6 +324,13 @@ const STRINGS = {
     titlePlaceholder: 'Enter a game title', defaultTitle: 'Jeopardy!',
     chooseFile: 'Choose CSV or XLSX', resetBoard: 'Reset game board', clearBoardBtn: 'Clear board',
     showTimerLabel: 'Show timer', timerSecondsLabel: 'Seconds per question (3\u2013300)',
+    round1Tab: 'Round 1', finalTab: 'Final',
+    finalTileWord1: 'FINAL', finalTileWord2: 'QUESTION', finalMetaLabel: 'FINAL QUESTION',
+    finalStatusReady: 'Final question ready. Click the tile to reveal it.',
+    finalStatusDone: 'Final question already revealed.',
+    finalRowHelp: 'A row with category <code>Final</code> is the Final question.',
+    finalRowDuplicate: row => `Row ${row} is a second "Final" row; only one is allowed.`,
+    templateFinalQuestion: 'Final round question?', templateFinalAnswer: 'Final round answer',
     shareBtn: '🔗 Share', shareTitle: 'Share this game',
     shareIntro: 'This link is a snapshot of your board right now \u2014 copy it below to share or bookmark. Click Share again after making changes to get an updated link.',
     includeImagesLabel: 'Include images in the link',
@@ -348,7 +378,7 @@ const STRINGS = {
     emptyFile: 'The file contains no rows.',
     rowColumns: (row, got, expected) => `Row ${row} has ${got} columns; expected ${expected}.`,
     rowEmpty: row => `Row ${row} has no category name.`,
-    categoryCount: n => `Found ${n} categories; exactly 6 are required.`,
+    categoryCount: n => `Found ${n} categories (not counting a "Final" row, if any); exactly 6 are required.`,
     categoryQuestions: (name, n) => `Category "${name}" has ${n} questions; exactly 5 are required.`,
     newCategoryName: n => `Category ${n}`,
     templateCategory: n => `Category ${n}`,
@@ -364,6 +394,13 @@ const STRINGS = {
     titlePlaceholder: 'Wpisz tytuł gry', defaultTitle: 'Va banque!',
     chooseFile: 'Wybierz plik CSV lub XLSX', resetBoard: 'Zresetuj planszę', clearBoardBtn: 'Wyczyść planszę',
     showTimerLabel: 'Pokaż licznik', timerSecondsLabel: 'Sekundy na pytanie (3\u2013300)',
+    round1Tab: 'Runda 1', finalTab: 'Finał',
+    finalTileWord1: 'PYTANIE', finalTileWord2: 'FINAŁOWE', finalMetaLabel: 'PYTANIE FINAŁOWE',
+    finalStatusReady: 'Pytanie finałowe gotowe. Kliknij kafelek, aby je odsłonić.',
+    finalStatusDone: 'Pytanie finałowe zostało już odsłonięte.',
+    finalRowHelp: 'Wiersz z kategorią <code>Final</code> to pytanie finałowe.',
+    finalRowDuplicate: row => `Wiersz ${row} to drugi wiersz „Final”; dozwolony jest tylko jeden.`,
+    templateFinalQuestion: 'Pytanie finałowe?', templateFinalAnswer: 'Odpowiedź finałowa',
     shareBtn: '🔗 Udostępnij', shareTitle: 'Udostępnij tę grę',
     shareIntro: 'Ten link zapisuje aktualny stan planszy — skopiuj go poniżej, aby go udostępnić lub zapisać w zakładkach. Jeśli coś zmienisz, kliknij Udostępnij ponownie, aby uzyskać nowy link.',
     includeImagesLabel: 'Dołącz obrazy do linku',
@@ -388,7 +425,7 @@ const STRINGS = {
     imageCompressedInfo: (originalKB, finalKB) => `Skompresowano z ~${originalKB} KB do ~${finalKB} KB`,
     formatHelp: 'Kolumny <code>category,question,answer</code> — 6 kategorii × 5 pytań. CSV musi być w UTF-8.',
     exportHeading: 'Eksportuj grę',
-    exportIntro: 'Zapisuje wszystko — łącznie z obrazami i linkami — do pliku, który możesz zachować albo udostępnić. Nie obejmuje postępu gry.',
+    exportIntro: 'Zapisuje wszystko — łącznie z obrazami i linkami — do pliku, który możesz zachować lub komuś przesłać. Nie obejmuje postępu gry.',
     exportCSVBtn: 'Eksportuj jako CSV', exportXLSXBtn: 'Eksportuj jako XLSX',
     templateHeading: 'Pusty szablon',
     downloadIntro: 'Pusty punkt wyjścia — 30 przykładowych pytań, tylko tekst.',
@@ -411,7 +448,7 @@ const STRINGS = {
     emptyFile: 'Plik nie zawiera żadnych wierszy.',
     rowColumns: (row, got, expected) => `Wiersz ${row} ma ${got} kolumn; oczekiwano ${expected}.`,
     rowEmpty: row => `Wiersz ${row} nie ma nazwy kategorii.`,
-    categoryCount: n => `Znaleziono ${n} kategorii; wymagane jest dokładnie 6.`,
+    categoryCount: n => `Znaleziono ${n} kategorii (nie licząc wiersza „Final”, jeśli istnieje); wymagane jest dokładnie 6.`,
     categoryQuestions: (name, n) => `Kategoria „${name}” ma ${n} pytań; wymagane jest dokładnie 5.`,
     newCategoryName: n => `Kategoria ${n}`,
     templateCategory: n => `Kategoria ${n}`,
@@ -430,11 +467,23 @@ function blankState() {
     questions: Array.from({ length: 5 }, () => ({ question: '', answer: '', image: null, link: null }))
   }));
 }
+function blankItem() { return { question: '', answer: '', image: null, link: null }; }
+function isBlankItem(item) {
+  return !item.question.trim() && !item.answer.trim() && !item.image && !(item.link && item.link.url);
+}
 
 function showStatus(message, error = false) {
   $('status').textContent = message;
   $('status').classList.toggle('error', error);
   $('status').removeAttribute('data-i18n');
+}
+/* Recomputes the default (non-transient) status line for the current mode/tab. Explicit
+   confirmations (Saved, Cleared, Loaded, Copied, errors, …) are shown afterward and simply
+   overwrite this until the next state change calls this again. */
+function updateIdleStatus() {
+  if (editMode) { showStatus(t().statusIdle); return; }
+  if (activeTab === 'final') showStatus(finalRevealed ? t().finalStatusDone : t().finalStatusReady);
+  else showStatus(t().statusRemaining(30 - removed.size));
 }
 
 /* ---------- Language switching ---------- */
@@ -458,9 +507,7 @@ function applyLanguage() {
     $('gameTitle').textContent = t().defaultTitle;
   }
   if (!boardTouched) state = blankState();
-  if (!$('status').classList.contains('error')) {
-    showStatus(editMode ? t().statusIdle : t().statusRemaining(30 - removed.size));
-  }
+  if (!$('status').classList.contains('error')) updateIdleStatus();
   renderBoard();
 }
 function setLang(next) { if (lang !== next) { lang = next; applyLanguage(); } }
@@ -475,15 +522,29 @@ function setEditMode(on) {
   else $('gameTitle').textContent = $('titleInputGame').value.trim() || t().defaultTitle;
   if ($('modal').open) $('modal').close();
   if ($('editModal').open) $('editModal').close();
-  showStatus(on ? t().statusIdle : t().statusRemaining(30 - removed.size));
   renderBoard();
+  updateIdleStatus();
+}
+
+/* ---------- Round tabs ---------- */
+function setActiveTab(tab) {
+  activeTab = tab;
+  $('tabRound1').setAttribute('aria-selected', String(tab === 'round1'));
+  $('tabFinal').setAttribute('aria-selected', String(tab === 'final'));
+  renderBoard();
+  updateIdleStatus();
 }
 
 /* ---------- Board rendering ---------- */
 function renderBoard() {
   const board = $('board');
   board.replaceChildren();
+  board.classList.toggle('final-mode', activeTab === 'final');
+  if (activeTab === 'final') renderFinalTile(board);
+  else renderRound1(board);
+}
 
+function renderRound1(board) {
   state.forEach(cat => {
     const cell = document.createElement('div');
     cell.className = 'category';
@@ -518,14 +579,34 @@ function renderBoard() {
       tile.type = 'button';
       tile.className = 'tile';
       const item = cat.questions[r];
-      const isEmpty = !item.question.trim() && !item.answer.trim() && !item.image && !(item.link && item.link.url);
-      if (editMode && isEmpty) tile.classList.add('tile-empty');
+      if (editMode && isBlankItem(item)) tile.classList.add('tile-empty');
       tile.textContent = String(points);
       tile.setAttribute('aria-label', `${cat.name}, ${t().points(points)}`);
       tile.addEventListener('click', () => editMode ? openEditor(c, r, points) : openReveal(c, r, points, tile));
       board.append(tile);
     });
   }
+}
+
+function renderFinalTile(board) {
+  if (!editMode && finalRevealed) {
+    board.append(Object.assign(document.createElement('div'), { className: 'empty' }));
+    return;
+  }
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'tile final-tile';
+  if (editMode && isBlankItem(finalQuestion)) tile.classList.add('tile-empty');
+  const word1 = document.createElement('span');
+  word1.className = 'final-tile-word1';
+  word1.textContent = t().finalTileWord1;
+  const word2 = document.createElement('span');
+  word2.className = 'final-tile-word2';
+  word2.textContent = t().finalTileWord2;
+  tile.append(word1, word2);
+  tile.setAttribute('aria-label', `${t().finalTileWord1} ${t().finalTileWord2}`);
+  tile.addEventListener('click', () => editMode ? openFinalEditor() : openFinalReveal(tile));
+  board.append(tile);
 }
 
 /* ---------- Countdown timer (clock-style M:SS display) ---------- */
@@ -557,14 +638,12 @@ function startTimer() {
   }, 1000);
 }
 
-/* ---------- Reveal dialog ---------- */
-function openReveal(c, r, points, tile) {
-  removed.add(`${c}-${r}`);
-  tile.replaceWith(Object.assign(document.createElement('div'), { className: 'empty' }));
-  showStatus(t().statusRemaining(30 - removed.size));
-
-  const item = state[c].questions[r];
-  $('modalMeta').textContent = `${state[c].name} · ${t().points(points)}`;
+/* ---------- Reveal dialog ----------
+   populateAndShowRevealDialog() holds all logic shared between a regular point tile and
+   the Final tile; the two open* wrappers below only differ in where the item/meta text
+   comes from and how the tile gets marked "used". */
+function populateAndShowRevealDialog(item, metaText) {
+  $('modalMeta').textContent = metaText;
   if (item.image) { $('modalImage').src = item.image; $('modalImage').hidden = false; }
   else { $('modalImage').hidden = true; $('modalImage').removeAttribute('src'); }
   $('modalQuestion').textContent = item.question;
@@ -584,13 +663,23 @@ function openReveal(c, r, points, tile) {
   $('reveal').focus();
   startTimer();
 }
+function openReveal(c, r, points, tile) {
+  removed.add(`${c}-${r}`);
+  tile.replaceWith(Object.assign(document.createElement('div'), { className: 'empty' }));
+  updateIdleStatus();
+  populateAndShowRevealDialog(state[c].questions[r], `${state[c].name} · ${t().points(points)}`);
+}
+function openFinalReveal(tile) {
+  finalRevealed = true;
+  tile.replaceWith(Object.assign(document.createElement('div'), { className: 'empty' }));
+  updateIdleStatus();
+  populateAndShowRevealDialog(finalQuestion, t().finalMetaLabel);
+}
 
 /* ---------- Edit dialog ---------- */
-function openEditor(c, r, points) {
-  editingTarget = { c, r };
-  const item = state[c].questions[r];
+function populateAndShowEditDialog(item, metaText) {
   editingImage = item.image || null;
-  $('editMeta').textContent = `${state[c].name} · ${t().points(points)}`;
+  $('editMeta').textContent = metaText;
   $('editQuestion').value = item.question;
   $('editAnswer').value = item.answer;
   $('editLinkLabelInput').value = item.link ? item.link.label || '' : '';
@@ -599,6 +688,14 @@ function openEditor(c, r, points) {
   $('editModal').showModal();
   $('editModal').querySelector('.modal-inner').scrollTop = 0;
   $('editQuestion').focus();
+}
+function openEditor(c, r, points) {
+  editingTarget = { c, r };
+  populateAndShowEditDialog(state[c].questions[r], `${state[c].name} · ${t().points(points)}`);
+}
+function openFinalEditor() {
+  editingTarget = { final: true };
+  populateAndShowEditDialog(finalQuestion, t().finalMetaLabel);
 }
 function updateImagePreview() {
   const hasImage = Boolean(editingImage);
@@ -693,10 +790,14 @@ function parseCSV(input) {
   return rows.filter(r => r.some(cell => cell.trim()));
 }
 
-/* Parses rows into 6 categories x 5 questions. Recognizes optional "image", "link_label" and
-   "link_url" columns in addition to the required "category", "question", "answer" columns, so
-   exported files round-trip images and links. Only the category name is required per row —
-   question/answer may be blank, representing a tile that's still being written. */
+/* Parses rows into 6 categories x 5 questions, plus an optional Final question. A row whose
+   category (case-insensitively) equals "Final" is pulled out as the Final question rather than
+   grouped as a 7th category; at most one such row is allowed. Recognizes optional "image",
+   "link_label" and "link_url" columns in addition to the required "category", "question",
+   "answer" columns, so exported files round-trip images and links. Only the category name is
+   required per row — question/answer may be blank, representing a tile that's still being
+   written. Files without any "Final" row simply leave the Final question untouched (older
+   30-row exports/templates keep working). */
 function parseGame(rows) {
   if (!rows.length) throw new Error(t().emptyFile);
   const header = rows[0].map(h => String(h).trim().toLowerCase());
@@ -706,6 +807,8 @@ function parseGame(rows) {
   const imagePos = header.indexOf('image');
   const linkLabelPos = header.indexOf('link_label');
   const linkUrlPos = header.indexOf('link_url');
+
+  let final = null;
   const groups = new Map();
   rows.slice(1).forEach((row, i) => {
     if (row.length !== header.length) throw new Error(t().rowColumns(i + 2, row.length, header.length));
@@ -716,12 +819,17 @@ function parseGame(rows) {
     const image = imagePos >= 0 ? String(row[imagePos]).trim() || null : null;
     const linkUrl = linkUrlPos >= 0 ? String(row[linkUrlPos]).trim() : '';
     const link = linkUrl ? { label: linkLabelPos >= 0 ? String(row[linkLabelPos]).trim() : '', url: linkUrl } : null;
+    if (category.toLowerCase() === FINAL_CATEGORY_KEYWORD) {
+      if (final) throw new Error(t().finalRowDuplicate(i + 2));
+      final = { question, answer, image, link };
+      return;
+    }
     if (!groups.has(category)) groups.set(category, []);
     groups.get(category).push({ question, answer, image, link });
   });
   if (groups.size !== 6) throw new Error(t().categoryCount(groups.size));
   for (const [name, items] of groups) if (items.length !== 5) throw new Error(t().categoryQuestions(name, items.length));
-  return [...groups].map(([name, items]) => ({ name, questions: items }));
+  return { categories: [...groups].map(([name, items]) => ({ name, questions: items })), final };
 }
 
 /* ---------- Minimal XML helpers (for XLSX parsing) ---------- */
@@ -940,11 +1048,13 @@ function templateRows() {
       rows.push([category, s.templateQuestion(q, category), s.templateAnswer(q, category)]);
     }
   }
+  rows.push(['Final', s.templateFinalQuestion, s.templateFinalAnswer]);
   return rows;
 }
 /* Full export of the current board: the 3 required columns plus image/link_label/link_url so
    the file round-trips perfectly through "Choose CSV or XLSX" later, images included. Blank
-   tiles export as empty question/answer cells, which parseGame accepts on the way back in. */
+   tiles export as empty question/answer cells, which parseGame accepts on the way back in. The
+   Final question is appended as one extra row using the reserved "Final" category keyword. */
 function exportRows() {
   const rows = [['category', 'question', 'answer', 'image', 'link_label', 'link_url']];
   for (let r = 0; r < 5; r++) {
@@ -954,6 +1064,8 @@ function exportRows() {
       rows.push([cat.name, q.question, q.answer, q.image || '', link.label || '', link.url || '']);
     }
   }
+  const finalLink = finalQuestion.link || {};
+  rows.push(['Final', finalQuestion.question, finalQuestion.answer, finalQuestion.image || '', finalLink.label || '', finalLink.url || '']);
   return rows;
 }
 function saveBlob(blob, name) {
@@ -1057,6 +1169,23 @@ function fromBase64Url(str) {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return JSON.parse(new TextDecoder('utf-8').decode(bytes));
 }
+function serializeItemForShare(item, includeImages) {
+  return {
+    question: item.question,
+    answer: item.answer,
+    image: includeImages ? (item.image || null) : null,
+    link: item.link && item.link.url ? { label: item.link.label || '', url: item.link.url } : null
+  };
+}
+function deserializeItemFromShare(raw) {
+  const q = raw && typeof raw === 'object' ? raw : {};
+  return {
+    question: typeof q.question === 'string' ? q.question : '',
+    answer: typeof q.answer === 'string' ? q.answer : '',
+    image: typeof q.image === 'string' ? q.image : null,
+    link: (q.link && typeof q.link.url === 'string' && q.link.url) ? { label: typeof q.link.label === 'string' ? q.link.label : '', url: q.link.url } : null
+  };
+}
 function buildSharePayload(includeImages) {
   return {
     v: 1,
@@ -1064,14 +1193,11 @@ function buildSharePayload(includeImages) {
     title: $('titleInputGame').value.trim() || $('gameTitle').textContent || t().defaultTitle,
     categories: state.map(cat => ({
       name: cat.name,
-      questions: cat.questions.map(q => ({
-        question: q.question,
-        answer: q.answer,
-        image: includeImages ? (q.image || null) : null,
-        link: q.link && q.link.url ? { label: q.link.label || '', url: q.link.url } : null
-      }))
+      questions: cat.questions.map(q => serializeItemForShare(q, includeImages))
     })),
-    removed: [...removed]
+    removed: [...removed],
+    final: serializeItemForShare(finalQuestion, includeImages),
+    finalRevealed
   };
 }
 function refreshShareLink() {
@@ -1107,16 +1233,13 @@ function tryRestoreFromHash() {
     }
     lang = payload.lang === 'pl' ? 'pl' : 'en';
     state = payload.categories.map(cat => {
-      const questions = Array.isArray(cat.questions) ? cat.questions.slice(0, 5).map(q => ({
-        question: typeof q.question === 'string' ? q.question : '',
-        answer: typeof q.answer === 'string' ? q.answer : '',
-        image: typeof q.image === 'string' ? q.image : null,
-        link: (q.link && typeof q.link.url === 'string' && q.link.url) ? { label: typeof q.link.label === 'string' ? q.link.label : '', url: q.link.url } : null
-      })) : [];
-      while (questions.length < 5) questions.push({ question: '', answer: '', image: null, link: null });
+      const questions = Array.isArray(cat.questions) ? cat.questions.slice(0, 5).map(deserializeItemFromShare) : [];
+      while (questions.length < 5) questions.push(blankItem());
       return { name: typeof cat.name === 'string' ? cat.name : '', questions };
     });
     removed = new Set(Array.isArray(payload.removed) ? payload.removed.filter(k => typeof k === 'string') : []);
+    finalQuestion = deserializeItemFromShare(payload.final); // defaults to blank if absent (older links)
+    finalRevealed = Boolean(payload.finalRevealed);
     $('titleInputGame').value = (typeof payload.title === 'string' && payload.title) ? payload.title : STRINGS[lang].defaultTitle;
     $('gameTitle').textContent = $('titleInputGame').value;
     titleTouched = true;
@@ -1135,6 +1258,8 @@ $('titleInputGame').addEventListener('input', () => {
   titleTouched = true;
   $('gameTitle').textContent = $('titleInputGame').value.trim() || t().defaultTitle;
 });
+$('tabRound1').addEventListener('click', () => setActiveTab('round1'));
+$('tabFinal').addEventListener('click', () => setActiveTab('final'));
 
 $('timerEnabledInput').addEventListener('change', e => { timerEnabled = e.target.checked; });
 // Strip any non-digit character immediately, so only whole numbers can ever be typed.
@@ -1159,9 +1284,13 @@ $('questionFile').addEventListener('change', async event => {
     if (/\.csv$/i.test(file.name)) rows = parseCSV(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     else if (/\.xlsx$/i.test(file.name)) rows = parseXLSX(bytes);
     else throw new Error(t().chooseFileError);
-    state = parseGame(rows);
+    const parsed = parseGame(rows);
+    state = parsed.categories;
+    finalQuestion = parsed.final || blankItem();
+    finalRevealed = false;
     boardTouched = true;
     removed = new Set();
+    setActiveTab('round1');
     showStatus(t().statusLoaded);
     renderBoard();
   } catch (error) {
@@ -1174,15 +1303,18 @@ $('questionFile').addEventListener('change', async event => {
 $('clearBoard').addEventListener('click', () => {
   if (!confirm(t().clearConfirm)) return;
   state = blankState();
+  finalQuestion = blankItem();
+  finalRevealed = false;
   boardTouched = false;
   removed = new Set();
+  setActiveTab('round1');
   showStatus(t().statusCleared);
-  renderBoard();
 });
 $('reset').addEventListener('click', () => {
   removed = new Set();
-  showStatus(t().statusRemaining(30));
+  finalRevealed = false;
   renderBoard();
+  updateIdleStatus();
 });
 
 $('modal').addEventListener('close', stopTimer);
@@ -1190,8 +1322,8 @@ $('reveal').addEventListener('click', () => {
   stopTimer();
   $('answerBox').hidden = false;
   $('reveal').hidden = true;
-  // Bring the answer into view within the scrollable content area — this is what actually
-  // fixes the "have to scroll manually after Reveal" issue for tall questions.
+  // Bring the answer into view within the scrollable content area — fixes having to scroll
+  // manually after Reveal for tall questions.
   $('answerBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('close').focus();
 });
@@ -1231,14 +1363,15 @@ $('editImageRemove').addEventListener('click', () => {
   $('editImageSizeInfo').hidden = true;
 });
 $('editSave').addEventListener('click', () => {
-  const { c, r } = editingTarget;
   const url = $('editLinkUrlInput').value.trim();
-  state[c].questions[r] = {
+  const newItem = {
     question: $('editQuestion').value,
     answer: $('editAnswer').value,
     image: editingImage,
     link: url ? { label: $('editLinkLabelInput').value.trim(), url } : null
   };
+  if (editingTarget.final) finalQuestion = newItem;
+  else state[editingTarget.c].questions[editingTarget.r] = newItem;
   boardTouched = true;
   $('editModal').close();
   showStatus(t().statusSaved);
@@ -1281,6 +1414,7 @@ $('shareClose').addEventListener('click', () => $('shareModal').close());
 
 /* ---------- Startup ---------- */
 state = blankState();
+finalQuestion = blankItem();
 const restoredFromLink = tryRestoreFromHash();
 applyLanguage();
 if (restoredFromLink) showStatus(t().stateRestored);
