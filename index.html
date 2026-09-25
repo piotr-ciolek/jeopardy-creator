@@ -69,23 +69,32 @@ code { color: #ffe1a0; }
 .tile.tile-empty { background: repeating-linear-gradient(135deg, #153dad, #153dad 10px, #1c47bf 10px, #1c47bf 20px); outline: 2px dashed #6c85d6; outline-offset: -6px; }
 .empty { background: #0c1a50; }
 
-/* ---------- Dialogs (shared) ---------- */
-dialog { inset: 0; margin: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; padding: clamp(20px, 3vw, 48px); border: 0; border-radius: 0; background: #10225e; color: white; text-align: center; overflow-y: auto; }
+/* ---------- Dialogs (shared) ----------
+   .modal-inner is the scroll region for a dialog's main content. .modal-actions is a
+   sibling that stays outside that scroll region, so action buttons are always fully
+   visible and never get overlapped or covered by long/overflowing content — only the
+   content area scrolls internally when it doesn't fit. */
+dialog { inset: 0; margin: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; padding: clamp(20px, 3vw, 48px); border: 0; border-radius: 0; background: #10225e; color: white; text-align: center; overflow: hidden; }
 dialog[open] { display: flex; flex-direction: column; }
 dialog::backdrop { background: #030719; }
-.modal-inner { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; width: 100%; }
-#modalMeta, #editMeta { color: #ffdb80; font-size: clamp(1.5rem, 2.5vw, 2.7rem); font-weight: 850; text-transform: uppercase; overflow-wrap: anywhere; }
-.modal-actions { display: flex; flex: none; justify-content: center; flex-wrap: wrap; gap: 16px; padding: 10px 0; }
+.modal-inner { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; width: 100%; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+.modal-actions { flex: none; display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; padding: 10px 0; }
 .modal-actions button { min-height: 62px; padding: 12px 30px; border-radius: 10px; font-size: clamp(1.2rem, 1.7vw, 1.6rem); }
 .primary { border: 0; background: #ffdc83; color: #111a2e; }
 .primary:hover { background: #ffebb3; }
 
+/* Category · points badge, pinned to the top-right corner of the reveal and edit dialogs
+   (mirrors the timer badge in the opposite corner) instead of sitting inline in the flow,
+   so the question/answer content can start higher up the page with room to breathe. */
+#modalMeta, #editMeta { position: fixed; top: clamp(14px, 3vh, 30px); right: clamp(14px, 3vw, 30px); z-index: 5; max-width: min(62vw, 440px); padding: 10px 18px; border-radius: 999px; border: 2px solid #7487bd; background: #152358; color: #ffdb80; font-size: clamp(1rem, 1.8vw, 1.45rem); font-weight: 850; text-transform: uppercase; text-align: right; overflow-wrap: anywhere; }
+#modal .modal-inner, #editModal .modal-inner { justify-content: flex-start; padding-top: clamp(64px, 10vh, 110px); }
+
 /* ---------- Reveal dialog ---------- */
-#modalImage { max-width: min(1300px, 92vw); max-height: 38vh; margin-top: clamp(18px, 3vh, 34px); border-radius: 14px; border: 2px solid #7487bd; object-fit: contain; }
-#modalQuestion { max-width: 1500px; margin: clamp(24px, 5vh, 70px) auto; font-size: clamp(2.8rem, 6vw, 6.5rem); font-weight: 800; line-height: 1.2; white-space: pre-wrap; overflow-wrap: anywhere; }
+#modalImage { max-width: min(1300px, 92vw); max-height: 38vh; margin: 0 0 clamp(18px, 3vh, 30px); border-radius: 14px; border: 2px solid #7487bd; object-fit: contain; }
+#modalQuestion { max-width: 1500px; margin: 0 auto clamp(20px, 4vh, 50px); font-size: clamp(2.8rem, 6vw, 6.5rem); font-weight: 800; line-height: 1.2; white-space: pre-wrap; overflow-wrap: anywhere; }
 #modalLink { display: inline-flex; align-items: center; gap: 10px; margin-bottom: clamp(20px, 4vh, 40px); padding: 14px 28px; border-radius: 12px; border: 1px solid #7487bd; background: #294075; color: #ffdc83; font-weight: 800; font-size: clamp(1.2rem, 2vw, 1.8rem); text-decoration: none; }
 #modalLink:hover { background: #39548e; }
-#answerBox { width: min(1400px, 100%); padding-top: clamp(15px, 3vh, 35px); border-top: 2px solid #7487bd; font-size: clamp(2.3rem, 5vw, 5rem); line-height: 1.25; white-space: pre-wrap; overflow-wrap: anywhere; }
+#answerBox { width: min(1400px, 100%); padding-top: clamp(15px, 3vh, 35px); border-top: 2px solid #7487bd; font-size: clamp(2.3rem, 5vw, 5rem); line-height: 1.25; white-space: pre-wrap; overflow-wrap: anywhere; scroll-margin-top: clamp(64px, 10vh, 110px); }
 #answerBox small { display: block; margin-bottom: 12px; color: #ffdb80; font-size: clamp(1.1rem, 1.8vw, 1.7rem); font-weight: 850; text-transform: uppercase; }
 
 /* ---------- Timer badge (clock-style, monospace digits) ---------- */
@@ -96,7 +105,7 @@ dialog::backdrop { background: #030719; }
 @keyframes timerBounce { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.35); } 65% { transform: scale(.88); } }
 
 /* ---------- Edit dialog ---------- */
-.edit-form { width: min(950px, 100%); text-align: left; margin-top: 20px; }
+.edit-form { width: min(950px, 100%); text-align: left; margin-top: 0; }
 .edit-form label { display: block; margin: 18px 0 8px; font-weight: 800; color: #ffdb80; text-transform: uppercase; font-size: 1.05rem; }
 .edit-form textarea { width: 100%; min-height: 110px; padding: 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.4rem; line-height: 1.35; resize: vertical; }
 .image-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
@@ -132,6 +141,9 @@ dialog::backdrop { background: #030719; }
   #answerBox { font-size: clamp(2rem, 7vw, 3.3rem); }
   #modalImage { max-height: 28vh; }
   #timerBadge { min-width: 90px; padding: 8px 14px; }
+  #modalMeta, #editMeta { max-width: min(70vw, 260px); font-size: clamp(.85rem, 3.2vw, 1.05rem); padding: 8px 14px; }
+  #modal .modal-inner, #editModal .modal-inner { padding-top: clamp(56px, 14vh, 90px); }
+  #answerBox { scroll-margin-top: clamp(56px, 14vh, 90px); }
 }
 </style>
 </head>
@@ -194,8 +206,8 @@ dialog::backdrop { background: #030719; }
 
 <dialog id="modal" aria-labelledby="modalMeta" aria-describedby="modalQuestion">
   <div id="timerBadge" hidden aria-label="Time remaining"><span class="timer-icon">⏱️</span><span id="timerValue">0:30</span></div>
+  <div id="modalMeta"></div>
   <div class="modal-inner">
-    <div id="modalMeta"></div>
     <img id="modalImage" alt="" hidden>
     <div id="modalQuestion"></div>
     <a id="modalLink" href="#" target="_blank" rel="noopener" hidden></a>
@@ -208,8 +220,8 @@ dialog::backdrop { background: #030719; }
 </dialog>
 
 <dialog id="editModal" aria-labelledby="editMeta">
+  <div id="editMeta"></div>
   <div class="modal-inner">
-    <div id="editMeta"></div>
     <div class="edit-form">
       <label for="editQuestion" data-i18n="editQuestionLabel">Question</label>
       <textarea id="editQuestion"></textarea>
@@ -568,6 +580,7 @@ function openReveal(c, r, points, tile) {
   $('answerBox').hidden = true;
   $('reveal').hidden = false;
   $('modal').showModal();
+  $('modal').querySelector('.modal-inner').scrollTop = 0;
   $('reveal').focus();
   startTimer();
 }
@@ -584,6 +597,7 @@ function openEditor(c, r, points) {
   $('editLinkUrlInput').value = item.link ? item.link.url || '' : '';
   updateImagePreview();
   $('editModal').showModal();
+  $('editModal').querySelector('.modal-inner').scrollTop = 0;
   $('editQuestion').focus();
 }
 function updateImagePreview() {
@@ -1176,6 +1190,9 @@ $('reveal').addEventListener('click', () => {
   stopTimer();
   $('answerBox').hidden = false;
   $('reveal').hidden = true;
+  // Bring the answer into view within the scrollable content area — this is what actually
+  // fixes the "have to scroll manually after Reveal" issue for tall questions.
+  $('answerBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('close').focus();
 });
 $('close').addEventListener('click', () => {
