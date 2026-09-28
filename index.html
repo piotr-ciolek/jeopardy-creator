@@ -15,6 +15,15 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 textarea, input[type=text], input[type=number] { font: inherit; color: inherit; }
 button:focus-visible, .upload:focus-within, input:focus-visible, textarea:focus-visible { outline: 3px solid #ffdc83; outline-offset: 2px; }
 
+/* ---------- Toast (transient confirmations/errors) ----------
+   Best practice for editor-style apps: brief, non-blocking, self-dismissing feedback instead
+   of a permanent status line. Note: this renders BEHIND an open <dialog> (native dialogs use
+   the browser's top layer), so it's only used for feedback that happens while no dialog is
+   open — see the Share dialog's own Copy-button feedback for the in-dialog equivalent. */
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(12px); z-index: 20; max-width: min(560px, calc(100vw - 32px)); padding: 12px 22px; border-radius: 12px; background: #142457; border: 1px solid #7487bd; color: #f4f6ff; font-weight: 700; font-size: .98rem; text-align: center; box-shadow: 0 10px 30px #00000066; opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+#toast.toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.toast-error { background: #4a1f28; border-color: #c26a76; }
+
 /* ---------- Top bar ---------- */
 .shell { min-height: 100dvh; display: flex; flex-direction: column; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; padding: 8px clamp(12px, 2vw, 30px); border-bottom: 1px solid #354779; background: #101b45; flex-wrap: wrap; }
@@ -45,8 +54,6 @@ input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .action.danger:hover { background: #7c3140; }
 .action.export { border-color: #6fbf9a; background: #1c4636; }
 .action.export:hover { background: #275f47; }
-#status { color: #cbd4f1; font-size: .95rem; }
-#status.error { color: #ffb7be; }
 code { color: #ffe1a0; }
 .field-inline { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px; border: 1px solid #7384b9; border-radius: 9px; background: #243667; font-weight: 750; font-size: .95rem; }
 .field-inline input[type=number] { width: 64px; padding: 6px 8px; border-radius: 8px; border: 1px solid #8494c5; background: #0b1535; color: white; }
@@ -55,9 +62,11 @@ code { color: #ffe1a0; }
 
 /* ---------- Game board ---------- */
 .game { flex: 1; min-height: 0; padding: 7px; display: flex; flex-direction: column; }
-/* Title is centered inside a flex:1 wrapper, so the round tabs — placed after it in the
-   flex row — are naturally pushed all the way to the right edge of the screen. */
+/* Title is centered inside a flex:1 wrapper between the info button (far left) and the round
+   tabs (far right), so both stay pinned to the edges regardless of title length. */
 .game-head { flex: none; display: flex; align-items: center; gap: 14px; padding: 6px 12px 12px; }
+.info-btn { flex: none; width: 42px; height: 42px; border-radius: 50%; border: 1px solid #7384b9; background: #243667; color: #ffdc83; font-size: 1.3rem; font-weight: 900; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.info-btn:hover { background: #334c8c; }
 .game-title-wrap { flex: 1; min-width: 0; display: flex; justify-content: center; }
 .game-title { margin: 0; text-align: center; font-size: clamp(1.5rem, 2.6vw, 2.8rem); line-height: 1.15; font-weight: 850; overflow-wrap: anywhere; }
 #titleInputGame { font-size: clamp(1.3rem, 2.2vw, 2.2rem); font-weight: 850; text-align: center; padding: 8px 14px; border: 1px solid #8494c5; border-radius: 8px; background: #0b1535; color: white; min-width: 260px; max-width: 90vw; }
@@ -93,6 +102,8 @@ dialog::backdrop { background: #030719; }
 .modal-actions button { min-height: 62px; padding: 12px 30px; border-radius: 10px; font-size: clamp(1.2rem, 1.7vw, 1.6rem); }
 .primary { border: 0; background: #ffdc83; color: #111a2e; }
 .primary:hover { background: #ffebb3; }
+.primary.copied { background: #8ff0c2; }
+.primary.copied:hover { background: #a8f5d1; }
 
 /* Category · points (or "FINAL QUESTION") badge, pinned to the top-right corner of the
    reveal and edit dialogs (mirrors the timer badge in the opposite corner) instead of
@@ -102,6 +113,7 @@ dialog::backdrop { background: #030719; }
 
 /* ---------- Reveal dialog ---------- */
 #modalImage { max-width: min(1300px, 92vw); max-height: 38vh; margin: 0 0 clamp(18px, 3vh, 30px); border-radius: 14px; border: 2px solid #7487bd; object-fit: contain; }
+#modalAudio { width: min(560px, 92vw); margin: 0 0 clamp(18px, 3vh, 30px); }
 #modalQuestion { max-width: 1500px; margin: 0 auto clamp(20px, 4vh, 50px); font-size: clamp(2.8rem, 6vw, 6.5rem); font-weight: 800; line-height: 1.2; white-space: pre-wrap; overflow-wrap: anywhere; }
 #modalLink { display: inline-flex; align-items: center; gap: 10px; margin-bottom: clamp(20px, 4vh, 40px); padding: 14px 28px; border-radius: 12px; border: 1px solid #7487bd; background: #294075; color: #ffdc83; font-weight: 800; font-size: clamp(1.2rem, 2vw, 1.8rem); text-decoration: none; }
 #modalLink:hover { background: #39548e; }
@@ -115,31 +127,45 @@ dialog::backdrop { background: #030719; }
 #timerBadge.timer-expired { color: #ff8a80; border-color: #ff8a80; animation: timerBounce .6s ease; }
 @keyframes timerBounce { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.35); } 65% { transform: scale(.88); } }
 
-/* ---------- Edit dialog ---------- */
-.edit-form { width: min(950px, 100%); text-align: left; margin-top: 0; }
-.edit-form label { display: block; margin: 18px 0 8px; font-weight: 800; color: #ffdb80; text-transform: uppercase; font-size: 1.05rem; }
-.edit-form textarea { width: 100%; min-height: 110px; padding: 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.4rem; line-height: 1.35; resize: vertical; }
-.image-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
-/* Higher-specificity selector so this button keeps normal button styling instead of the ".edit-form label" gold-uppercase text rule above (this element is a <label> acting as a button). */
-.edit-form .image-upload-btn { display: inline-flex; margin: 0; text-transform: none; font-weight: 750; color: #111a2e; background: #ffdc83; }
-.edit-form .image-upload-btn:hover { background: #ffebb3; }
-.image-preview-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-#editImagePreview { max-width: 220px; max-height: 130px; border-radius: 8px; border: 1px solid #7487bd; object-fit: contain; }
-#editImageSizeInfo { font-size: .95rem; color: #a9b6e0; text-transform: none; font-weight: 600; }
-.field-hint { margin: 6px 0 0; color: #a9b6e0; font-size: .92rem; text-transform: none; font-weight: 500; }
-.link-row { display: flex; gap: 14px; flex-wrap: wrap; }
-.link-row input { flex: 1; min-width: 200px; padding: 13px 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.15rem; }
+/* ---------- Edit dialog ----------
+   Compact by design: question/answer sit side by side, hints are one short line each, and
+   spacing is tightened throughout so a typical question fits without scrolling. */
+.edit-form { width: min(1000px, 100%); text-align: left; margin-top: 0; }
+.edit-form label { display: block; margin: 10px 0 5px; font-weight: 800; color: #ffdb80; text-transform: uppercase; font-size: .95rem; }
+.edit-form textarea { width: 100%; min-height: 92px; padding: 12px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.25rem; line-height: 1.3; resize: vertical; }
+.qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+@media (max-width: 700px) { .qa-grid { grid-template-columns: 1fr; } }
+.media-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+/* Higher-specificity selectors so these controls keep normal styling instead of the
+   ".edit-form label" gold-uppercase rule above (they're <label> elements acting as buttons/toggles). */
+.edit-form .upload-btn { display: inline-flex; margin: 0; text-transform: none; font-weight: 750; color: #111a2e; background: #ffdc83; }
+.edit-form .upload-btn:hover { background: #ffebb3; }
+.edit-form .edit-toggle { margin: 0; text-transform: none; font-weight: 750; font-size: .95rem; min-height: 40px; }
+.audio-start-input { width: 74px; padding: 8px 10px; border-radius: 8px; border: 1px solid #8494c5; background: #0b1535; color: white; text-align: center; font-family: "Courier New", monospace; font-weight: 800; }
+.audio-start-input:disabled { opacity: .4; cursor: not-allowed; }
+.media-preview-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+#editImagePreview { max-width: 180px; max-height: 100px; border-radius: 8px; border: 1px solid #7487bd; object-fit: contain; }
+#editAudioPreview { max-width: 280px; }
+#editImageSizeInfo, #editAudioSizeInfo { font-size: .9rem; color: #a9b6e0; text-transform: none; font-weight: 600; }
+.field-hint { margin: 4px 0 0; color: #a9b6e0; font-size: .85rem; text-transform: none; font-weight: 500; }
+.link-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.link-row input { flex: 1; min-width: 180px; padding: 11px 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.05rem; }
+
+/* ---------- Help dialog ---------- */
+#helpHeading { font-size: clamp(1.8rem, 3.4vw, 2.6rem); font-weight: 900; color: #ffdc83; margin-bottom: 14px; }
+.help-steps { width: min(640px, 100%); text-align: left; margin: 0 auto; padding-left: 1.4em; color: #e5ebff; font-size: 1.15rem; line-height: 1.6; }
+.help-steps li { margin-bottom: 10px; }
 
 /* ---------- Share dialog ---------- */
 #shareHeading { font-size: clamp(2.1rem, 4vw, 3.3rem); font-weight: 900; letter-spacing: -.015em; color: #ffdc83; text-shadow: 0 3px 18px rgba(255, 220, 131, .35); margin-bottom: 10px; }
 .share-form { width: min(680px, 100%); text-align: left; margin-top: 6px; }
 .share-form > p { color: #c6d0ed; line-height: 1.5; font-size: 1.1rem; text-align: center; margin: 0 0 20px; }
 #shareLinkInput { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #7487bd; background: #0c1a50; color: white; font-size: 1.1rem; }
-.share-status { text-align: center; margin-top: 16px; color: #8ff0c2; font-weight: 800; font-size: 1.05rem; min-height: 1.4em; }
 .share-checkbox { display: flex; align-items: center; gap: 10px; margin: 20px 0 4px; font-weight: 750; font-size: 1.05rem; }
 .share-checkbox input { width: 20px; height: 20px; accent-color: #ffdc83; flex: none; }
 .share-note { margin: 4px 0 0; color: #a9b6e0; font-size: .92rem; text-align: left; }
 .share-warning { margin-top: 14px; color: #ffcf7a; font-weight: 700; font-size: .95rem; text-align: center; }
+.share-copy-error { margin-top: 14px; color: #ffb7be; font-weight: 700; font-size: .95rem; text-align: center; }
 
 /* ---------- Small screens ---------- */
 @media (max-width: 620px) {
@@ -156,10 +182,13 @@ dialog::backdrop { background: #030719; }
   #modalMeta, #editMeta { max-width: min(70vw, 260px); font-size: clamp(.85rem, 3.2vw, 1.05rem); padding: 8px 14px; }
   #modal .modal-inner, #editModal .modal-inner { padding-top: clamp(56px, 14vh, 90px); }
   #answerBox { scroll-margin-top: clamp(56px, 14vh, 90px); }
+  #toast { bottom: 16px; font-size: .9rem; padding: 10px 16px; }
 }
 </style>
 </head>
 <body>
+<div id="toast" role="status" aria-live="polite"></div>
+
 <div class="shell">
   <header class="topbar">
     <span id="brand" class="brand" data-i18n="brand">JEOPARDY!</span>
@@ -175,7 +204,7 @@ dialog::backdrop { background: #030719; }
   </header>
 
   <section id="editPanel" class="edit-panel" hidden>
-    <p data-i18n="editIntro">Import a file below, or click a category name or a point tile on the board to edit it directly.</p>
+    <p data-i18n="editIntro">Import a file, or click a category or tile to edit it.</p>
 
     <div class="setup-actions">
       <label for="questionFile" class="upload"><span data-i18n="chooseFile">Choose CSV or XLSX</span><input id="questionFile" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
@@ -183,14 +212,13 @@ dialog::backdrop { background: #030719; }
       <label class="edit-toggle"><input type="checkbox" id="timerEnabledInput" checked><span data-i18n="showTimerLabel">Show timer</span></label>
       <label class="field-inline"><span data-i18n="timerSecondsLabel">Seconds per question (3–300)</span><input id="timerSecondsInput" type="number" inputmode="numeric" pattern="[0-9]*" step="1" min="3" max="300" value="30"></label>
     </div>
-    <p id="status" role="status" aria-live="polite" data-i18n="statusIdle">Board ready. Import a file or edit tiles directly.</p>
     <p data-i18n="formatHelp">Columns <code>category,question,answer</code> — 6 categories × 5 questions. CSV must be UTF-8.</p>
     <p data-i18n="finalRowHelp">A row with category <code>Final</code> is the Final question.</p>
 
     <div class="panel-columns">
       <div>
         <h2 data-i18n="exportHeading">Export your game</h2>
-        <p data-i18n="exportIntro">Saves everything — including images and links — for backup or sharing. Doesn't include play progress.</p>
+        <p data-i18n="exportIntro">Saves the whole game — images, audio and links — to a file. Doesn't include progress.</p>
         <div class="downloads">
           <button id="exportCSV" class="action export" type="button" data-i18n="exportCSVBtn">Export as CSV</button>
           <button id="exportXLSX" class="action export" type="button" data-i18n="exportXLSXBtn">Export as XLSX</button>
@@ -205,11 +233,12 @@ dialog::backdrop { background: #030719; }
         </div>
       </div>
     </div>
-    <p data-i18n="csvExtraColumnsHelp">Optional columns <code>image</code>, <code>link_label</code>, <code>link_url</code> — exported files include them automatically.</p>
+    <p data-i18n="csvExtraColumnsHelp">Optional columns <code>image</code>, <code>audio</code>, <code>audio_start</code>, <code>audio_autoplay</code>, <code>link_label</code>, <code>link_url</code> — exported files include them automatically.</p>
   </section>
 
   <section class="game">
     <div class="game-head">
+      <button id="infoBtn" class="info-btn" type="button" aria-label="How to use this app" aria-haspopup="dialog">ⓘ</button>
       <div class="game-title-wrap">
         <h1 id="gameTitle" class="game-title"></h1>
         <input id="titleInputGame" type="text" maxlength="120" hidden>
@@ -228,6 +257,7 @@ dialog::backdrop { background: #030719; }
   <div id="modalMeta"></div>
   <div class="modal-inner">
     <img id="modalImage" alt="" hidden>
+    <audio id="modalAudio" controls hidden></audio>
     <div id="modalQuestion"></div>
     <a id="modalLink" href="#" target="_blank" rel="noopener" hidden></a>
     <div id="answerBox" hidden><small data-i18n="answerLabel">Answer</small><span id="modalAnswer"></span></div>
@@ -242,29 +272,48 @@ dialog::backdrop { background: #030719; }
   <div id="editMeta"></div>
   <div class="modal-inner">
     <div class="edit-form">
-      <label for="editQuestion" data-i18n="editQuestionLabel">Question</label>
-      <textarea id="editQuestion"></textarea>
-
-      <label for="editAnswer" data-i18n="editAnswerLabel">Answer</label>
-      <textarea id="editAnswer"></textarea>
-
-      <label for="editImageFile" data-i18n="editImageLabel">Image (optional)</label>
-      <div class="image-row">
-        <label for="editImageFile" class="upload image-upload-btn"><span data-i18n="chooseImage">Choose image</span><input id="editImageFile" type="file" accept="image/*"></label>
-        <div class="image-preview-wrap">
-          <img id="editImagePreview" alt="" hidden>
-          <span id="editImageSizeInfo" hidden></span>
-          <button id="editImageRemove" class="action" type="button" hidden data-i18n="removeImageBtn">Remove image</button>
+      <div class="qa-grid">
+        <div>
+          <label for="editQuestion" data-i18n="editQuestionLabel">Question</label>
+          <textarea id="editQuestion"></textarea>
+        </div>
+        <div>
+          <label for="editAnswer" data-i18n="editAnswerLabel">Answer</label>
+          <textarea id="editAnswer"></textarea>
         </div>
       </div>
-      <p class="field-hint" data-i18n="imageCompressHint">Images are resized and compressed automatically to keep files and links small.</p>
+
+      <label for="editImageFile" data-i18n="editImageLabel">Image (optional)</label>
+      <div class="media-row">
+        <label for="editImageFile" class="upload upload-btn"><span data-i18n="chooseImage">Choose image</span><input id="editImageFile" type="file" accept="image/*"></label>
+      </div>
+      <div class="media-preview-wrap">
+        <img id="editImagePreview" alt="" hidden>
+        <span id="editImageSizeInfo" hidden></span>
+        <button id="editImageRemove" class="action" type="button" hidden data-i18n="removeImageBtn">Remove image</button>
+      </div>
+      <p class="field-hint" data-i18n="imageCompressHint">Resized and compressed automatically.</p>
+
+      <label for="editAudioFile" data-i18n="editAudioLabel">Audio (optional)</label>
+      <div class="media-row">
+        <label for="editAudioFile" class="upload upload-btn"><span data-i18n="chooseAudio">Choose audio</span><input id="editAudioFile" type="file" accept="audio/*"></label>
+        <label class="edit-toggle"><input type="checkbox" id="editAudioAutoplay" checked><span data-i18n="audioAutoplayLabel">Autoplay</span></label>
+        <label class="edit-toggle"><input type="checkbox" id="editAudioStartEnabled"><span data-i18n="audioStartLabel">Start at</span></label>
+        <input id="editAudioStartInput" type="text" inputmode="numeric" class="audio-start-input" placeholder="0:00" value="0:00" aria-label="Start at (MM:SS)">
+      </div>
+      <div class="media-preview-wrap">
+        <audio id="editAudioPreview" controls hidden></audio>
+        <span id="editAudioSizeInfo" hidden></span>
+        <button id="editAudioRemove" class="action" type="button" hidden data-i18n="removeAudioBtn">Remove audio</button>
+      </div>
+      <p class="field-hint" data-i18n="audioHint">Not compressed — keep clips short (max 8 MB). Drag the player's position while previewing to set "Start at" automatically.</p>
 
       <label for="editLinkLabelInput" data-i18n="editLinkLabel">Link (optional)</label>
       <div class="link-row">
         <input id="editLinkLabelInput" type="text" maxlength="80">
         <input id="editLinkUrlInput" type="text" maxlength="2000">
       </div>
-      <p class="field-hint" data-i18n="linkHint">Add a name and a URL (e.g. a YouTube link) — it shows as a button on the question.</p>
+      <p class="field-hint" data-i18n="linkHint">Shows as a button on the question.</p>
     </div>
   </div>
   <div class="modal-actions">
@@ -277,18 +326,28 @@ dialog::backdrop { background: #030719; }
   <div class="modal-inner">
     <div id="shareHeading" data-i18n="shareTitle">Share this game</div>
     <div class="share-form">
-      <p data-i18n="shareIntro">This link is a snapshot of your board right now — copy it below to share or bookmark. Click Share again after making changes to get an updated link.</p>
+      <p data-i18n="shareIntro">This link saves the current game state — copy it to share or bookmark. Click Share again after changes.</p>
       <input id="shareLinkInput" type="text" readonly aria-label="Shareable link">
       <div id="shareWarning" class="share-warning" hidden></div>
-      <label class="share-checkbox"><input type="checkbox" id="shareIncludeImages"><span data-i18n="includeImagesLabel">Include images in the link</span></label>
-      <p class="share-note" data-i18n="includeImagesNote">Images are compressed first, but very long links can fail in some browsers or chat apps. For guaranteed results with images, use Export instead.</p>
+      <label class="share-checkbox"><input type="checkbox" id="shareIncludeImages"><span data-i18n="includeImagesLabel">Include images and audio in the link</span></label>
+      <p class="share-note" data-i18n="includeImagesNote">Images are compressed, audio included as-is — very long links may not work everywhere. Use Export for certainty.</p>
+      <p id="shareCopyError" class="share-copy-error" hidden></p>
     </div>
   </div>
   <div class="modal-actions">
     <button id="shareCopy" type="button" class="primary" data-i18n="copyBtn">Copy link</button>
     <button id="shareClose" type="button" class="action" data-i18n="closeBtn">Close</button>
   </div>
-  <div id="shareStatus" class="share-status" aria-live="polite"></div>
+</dialog>
+
+<dialog id="helpModal" aria-labelledby="helpHeading">
+  <div class="modal-inner">
+    <div id="helpHeading" data-i18n="helpTitle">How to use this app</div>
+    <ol id="helpSteps" class="help-steps"></ol>
+  </div>
+  <div class="modal-actions">
+    <button id="helpClose" type="button" class="primary" data-i18n="closeBtn">Close</button>
+  </div>
 </dialog>
 
 <script>
@@ -296,6 +355,7 @@ dialog::backdrop { background: #030719; }
 const $ = id => document.getElementById(id);
 const textEncoder = new TextEncoder();
 const FINAL_CATEGORY_KEYWORD = 'final'; // reserved, case-insensitive, in CSV/XLSX "category" column
+const MAX_AUDIO_BYTES = 8 * 1024 * 1024; // audio isn't compressed, so cap the raw upload size
 
 /* ---------- App state ---------- */
 let lang = 'en';
@@ -305,7 +365,10 @@ let titleTouched = false;
 let removed = new Set();
 let state = null;
 let editingTarget = null;
-let editingImage = null;
+let editingImage = null; // data URI content can't be read back from a <input type=file>, so
+let editingAudio = null; // this stays as JS state; everything else (autoplay, start time) is
+                         // read straight from the form controls at Save time — see editSave.
+let editingAudioDuration = null; // seconds; null until the freshly-loaded clip reports one
 let activeTab = 'round1'; // 'round1' | 'final'
 let finalQuestion = null;
 let finalRevealed = false;
@@ -314,35 +377,41 @@ let finalRevealed = false;
 let timerEnabled = true;
 let timerSeconds = 30;
 let timerInterval = null;
+let toastTimeout = null;
 
 /* ---------- Translations ---------- */
 const STRINGS = {
   en: {
     brand: 'JEOPARDY!',
     editModeLabel: 'Editable mode',
-    editIntro: 'Import a file below, or click a category name or a point tile on the board to edit it directly.',
+    editIntro: 'Import a file, or click a category or tile to edit it.',
     titlePlaceholder: 'Enter a game title', defaultTitle: 'Jeopardy!',
     chooseFile: 'Choose CSV or XLSX', resetBoard: 'Reset game board', clearBoardBtn: 'Clear board',
     showTimerLabel: 'Show timer', timerSecondsLabel: 'Seconds per question (3\u2013300)',
     round1Tab: 'Round 1', finalTab: 'Final',
     finalTileWord1: 'FINAL', finalTileWord2: 'QUESTION', finalMetaLabel: 'FINAL QUESTION',
-    finalStatusReady: 'Final question ready. Click the tile to reveal it.',
-    finalStatusDone: 'Final question already revealed.',
     finalRowHelp: 'A row with category <code>Final</code> is the Final question.',
     finalRowDuplicate: row => `Row ${row} is a second "Final" row; only one is allowed.`,
     templateFinalQuestion: 'Final round question?', templateFinalAnswer: 'Final round answer',
+    helpBtnLabel: 'How to use this app',
+    helpTitle: 'How to use this app',
+    helpSteps: [
+      'Turn on <strong>Editable mode</strong> (top right) to build your game.',
+      'Set a title, then import a CSV/XLSX file or click a tile to type a question and answer.',
+      'Optionally add an image, audio clip, or link to any question.',
+      'Turn off <strong>Editable mode</strong>, then click a tile to reveal it during play.',
+      'Use the <strong>Final</strong> tab for a one-question final round.',
+      'Export or 🔗 Share your game to save it or send it to others.'
+    ],
     shareBtn: '🔗 Share', shareTitle: 'Share this game',
-    shareIntro: 'This link is a snapshot of your board right now \u2014 copy it below to share or bookmark. Click Share again after making changes to get an updated link.',
-    includeImagesLabel: 'Include images in the link',
-    includeImagesNote: 'Images are compressed first, but very long links can fail in some browsers or chat apps. For guaranteed results with images, use Export instead.',
-    copyBtn: 'Copy link', copiedMsg: 'Link copied!',
-    copyFailMsg: 'Could not copy — select the link above and copy it manually.',
-    linkTooLongWarning: n => `This link is very long (~${n.toLocaleString('en-US')} characters) and may not work everywhere. Try unchecking "include images", or use Export instead.`,
+    shareIntro: 'This link saves the current game state \u2014 copy it to share or bookmark. Click Share again after changes.',
+    includeImagesLabel: 'Include images and audio in the link',
+    includeImagesNote: 'Images are compressed, audio included as-is \u2014 very long links may not work everywhere. Use Export for certainty.',
+    copyBtn: 'Copy link', copiedBtn: '✓ Copied!',
+    copyFailMsg: 'Could not copy automatically — select the link above and copy it manually.',
+    linkTooLongWarning: n => `This link is very long (~${n.toLocaleString('en-US')} characters) and may not work everywhere. Try unchecking "include images and audio", or use Export instead.`,
     addressBarWarning: 'This link is too long for the address bar, but it\u2019s still valid — copy and share it below.',
-    statusIdle: 'Board ready. Import a file or edit tiles directly.',
-    statusRemaining: n => `${n} of 30 questions remaining.`,
-    statusLoaded: 'File loaded. Turn off Editable mode to start playing.',
-    statusSaved: 'Saved.',
+    statusLoaded: 'File loaded — turn off Editable mode to play.',
     statusCleared: 'Board cleared.',
     stateRestored: 'Restored the game from your shared link.',
     stateRestoreError: 'Could not read the link; starting with a blank board.',
@@ -350,25 +419,28 @@ const STRINGS = {
     csvDecodeError: 'Could not read the file. Save it as UTF-8 and try again.',
     chooseFileError: 'Select a .csv or .xlsx file.',
     imageTypeError: 'Select an image file (PNG, JPEG, GIF, WEBP, etc.).',
-    imageCompressing: 'Compressing image…',
     imageCompressError: 'Could not process that image. Try a different file.',
-    imageCompressedInfo: (originalKB, finalKB) => `Compressed from ~${originalKB} KB to ~${finalKB} KB`,
+    editAudioLabel: 'Audio (optional)', chooseAudio: 'Choose audio', removeAudioBtn: 'Remove audio',
+    audioAutoplayLabel: 'Autoplay', audioStartLabel: 'Start at',
+    audioHint: 'Not compressed \u2014 keep clips short (max 8 MB). Drag the player\u2019s position while previewing to set "Start at" automatically.',
+    audioTypeError: 'Select an audio file (MP3, WAV, OGG, M4A, etc.).',
+    audioTooLargeError: mb => `Audio files must be ${mb} MB or smaller. Trim the clip or use a lower-bitrate export.`,
     formatHelp: 'Columns <code>category,question,answer</code> \u2014 6 categories \u00d7 5 questions. CSV must be UTF-8.',
     exportHeading: 'Export your game',
-    exportIntro: 'Saves everything \u2014 including images and links \u2014 for backup or sharing. Doesn\u2019t include play progress.',
+    exportIntro: 'Saves the whole game \u2014 images, audio and links \u2014 to a file. Doesn\u2019t include progress.',
     exportCSVBtn: 'Export as CSV', exportXLSXBtn: 'Export as XLSX',
     templateHeading: 'Blank template',
     downloadIntro: 'A blank 30-question starting point, text only.',
     downloadCSVBtn: 'Download CSV template', downloadXLSXBtn: 'Download XLSX template',
-    csvExtraColumnsHelp: 'Optional columns <code>image</code>, <code>link_label</code>, <code>link_url</code> \u2014 exported files include them automatically.',
+    csvExtraColumnsHelp: 'Optional columns <code>image</code>, <code>audio</code>, <code>audio_start</code>, <code>audio_autoplay</code>, <code>link_label</code>, <code>link_url</code> \u2014 exported files include them automatically.',
     answerLabel: 'Answer', revealBtn: 'Reveal answer', closeBtn: 'Close',
     editQuestionLabel: 'Question', editAnswerLabel: 'Answer', saveBtn: 'Save', cancelBtn: 'Cancel',
     editImageLabel: 'Image (optional)', chooseImage: 'Choose image', removeImageBtn: 'Remove image',
-    imageCompressHint: 'Images are resized and compressed automatically to keep files and links small.',
+    imageCompressHint: 'Resized and compressed automatically.',
     editLinkLabel: 'Link (optional)',
     linkLabelPlaceholder: 'Link text, e.g. Watch clip',
     linkUrlPlaceholder: 'https://…',
-    linkHint: 'Add a name and a URL (e.g. a YouTube link) \u2014 it shows as a button on the question.',
+    linkHint: 'Shows as a button on the question.',
     defaultLinkText: 'Open link',
     questionPlaceholder: 'Type the question…', answerPlaceholder: 'Type the answer…',
     categoryPlaceholder: 'Category name',
@@ -390,29 +462,34 @@ const STRINGS = {
   pl: {
     brand: 'VA BANQUE!',
     editModeLabel: 'Tryb edycji',
-    editIntro: 'Zaimportuj plik poniżej albo kliknij nazwę kategorii lub kafelek z punktami, aby go edytować.',
+    editIntro: 'Zaimportuj plik albo kliknij kategorię czy kafelek, aby edytować.',
     titlePlaceholder: 'Wpisz tytuł gry', defaultTitle: 'Va banque!',
     chooseFile: 'Wybierz plik CSV lub XLSX', resetBoard: 'Zresetuj planszę', clearBoardBtn: 'Wyczyść planszę',
     showTimerLabel: 'Pokaż licznik', timerSecondsLabel: 'Sekundy na pytanie (3\u2013300)',
     round1Tab: 'Runda 1', finalTab: 'Finał',
     finalTileWord1: 'PYTANIE', finalTileWord2: 'FINAŁOWE', finalMetaLabel: 'PYTANIE FINAŁOWE',
-    finalStatusReady: 'Pytanie finałowe gotowe. Kliknij kafelek, aby je odsłonić.',
-    finalStatusDone: 'Pytanie finałowe zostało już odsłonięte.',
     finalRowHelp: 'Wiersz z kategorią <code>Final</code> to pytanie finałowe.',
     finalRowDuplicate: row => `Wiersz ${row} to drugi wiersz „Final”; dozwolony jest tylko jeden.`,
     templateFinalQuestion: 'Pytanie finałowe?', templateFinalAnswer: 'Odpowiedź finałowa',
+    helpBtnLabel: 'Jak korzystać z aplikacji',
+    helpTitle: 'Jak korzystać z aplikacji',
+    helpSteps: [
+      'Włącz <strong>tryb edycji</strong> (prawy górny róg), aby zbudować grę.',
+      'Ustaw tytuł, a potem zaimportuj plik CSV/XLSX albo kliknij kafelek, aby wpisać pytanie i odpowiedź.',
+      'Opcjonalnie dodaj do pytania obraz, audio lub link.',
+      'Wyłącz <strong>tryb edycji</strong> i kliknij kafelek, aby go odsłonić w trakcie gry.',
+      'Skorzystaj z zakładki <strong>Finał</strong> na jedno pytanie finałowe.',
+      'Wyeksportuj grę albo ją 🔗 udostępnij, aby ją zapisać lub przesłać innym.'
+    ],
     shareBtn: '🔗 Udostępnij', shareTitle: 'Udostępnij tę grę',
-    shareIntro: 'Ten link zapisuje aktualny stan planszy — skopiuj go poniżej, aby go udostępnić lub zapisać w zakładkach. Jeśli coś zmienisz, kliknij Udostępnij ponownie, aby uzyskać nowy link.',
-    includeImagesLabel: 'Dołącz obrazy do linku',
-    includeImagesNote: 'Obrazy są najpierw kompresowane, ale bardzo długie linki mogą nie działać w niektórych przeglądarkach lub aplikacjach do czatu. Aby mieć pewność, że obrazy zadziałają, użyj opcji Eksportuj.',
-    copyBtn: 'Skopiuj link', copiedMsg: 'Link skopiowany!',
-    copyFailMsg: 'Nie udało się skopiować — zaznacz link powyżej i skopiuj go ręcznie.',
-    linkTooLongWarning: n => `Ten link jest bardzo długi (~${n.toLocaleString('pl-PL')} znaków) i może nie działać wszędzie. Odznacz opcję „Dołącz obrazy do linku” albo użyj opcji Eksportuj.`,
+    shareIntro: 'Ten link zapisuje aktualny stan gry — skopiuj go, aby udostępnić lub zapisać w zakładkach. Po zmianach kliknij Udostępnij ponownie.',
+    includeImagesLabel: 'Dołącz obrazy i audio do linku',
+    includeImagesNote: 'Obrazy są kompresowane, audio dołączane w oryginale — bardzo długie linki mogą nie działać wszędzie. Dla pewności użyj Eksportu.',
+    copyBtn: 'Skopiuj link', copiedBtn: '✓ Skopiowano!',
+    copyFailMsg: 'Nie udało się skopiować automatycznie — zaznacz link powyżej i skopiuj go ręcznie.',
+    linkTooLongWarning: n => `Ten link jest bardzo długi (~${n.toLocaleString('pl-PL')} znaków) i może nie działać wszędzie. Odznacz opcję „Dołącz obrazy i audio do linku” albo użyj opcji Eksportuj.`,
     addressBarWarning: 'Ten link jest za długi na pole adresu, ale wciąż jest prawidłowy — skopiuj i udostępnij go poniżej.',
-    statusIdle: 'Plansza gotowa. Zaimportuj plik albo edytuj kafelki bezpośrednio.',
-    statusRemaining: n => `Pozostało ${n} z 30 pytań.`,
-    statusLoaded: 'Plik wczytany. Wyłącz tryb edycji, aby zacząć grę.',
-    statusSaved: 'Zapisano.',
+    statusLoaded: 'Plik wczytany — wyłącz tryb edycji, aby zagrać.',
     statusCleared: 'Plansza wyczyszczona.',
     stateRestored: 'Przywrócono grę z udostępnionego linku.',
     stateRestoreError: 'Nie udało się odczytać linku; zaczynamy z pustą planszą.',
@@ -420,25 +497,28 @@ const STRINGS = {
     csvDecodeError: 'Nie udało się wczytać pliku. Zapisz go w kodowaniu UTF-8 i spróbuj ponownie.',
     chooseFileError: 'Wybierz plik .csv lub .xlsx.',
     imageTypeError: 'Wybierz plik graficzny (PNG, JPEG, GIF, WEBP itd.).',
-    imageCompressing: 'Kompresowanie obrazu…',
     imageCompressError: 'Nie udało się przetworzyć tego obrazu. Wybierz inny plik.',
-    imageCompressedInfo: (originalKB, finalKB) => `Skompresowano z ~${originalKB} KB do ~${finalKB} KB`,
+    editAudioLabel: 'Audio (opcjonalnie)', chooseAudio: 'Wybierz audio', removeAudioBtn: 'Usuń audio',
+    audioAutoplayLabel: 'Autoodtwarzanie', audioStartLabel: 'Zacznij od',
+    audioHint: 'Nie jest kompresowane — używaj krótkich nagrań (maks. 8 MB). Przewiń odtwarzacz podczas podglądu, aby ustawić „Zacznij od” automatycznie.',
+    audioTypeError: 'Wybierz plik audio (MP3, WAV, OGG, M4A itd.).',
+    audioTooLargeError: mb => `Plik audio musi mieć maksymalnie ${mb} MB. Skróć nagranie albo użyj niższego bitrate.`,
     formatHelp: 'Kolumny <code>category,question,answer</code> — 6 kategorii × 5 pytań. CSV musi być w UTF-8.',
     exportHeading: 'Eksportuj grę',
-    exportIntro: 'Zapisuje wszystko — łącznie z obrazami i linkami — do pliku, który możesz zachować lub komuś przesłać. Nie obejmuje postępu gry.',
+    exportIntro: 'Zapisuje całą grę — obrazy, audio i linki — do pliku. Nie obejmuje postępu.',
     exportCSVBtn: 'Eksportuj jako CSV', exportXLSXBtn: 'Eksportuj jako XLSX',
     templateHeading: 'Pusty szablon',
     downloadIntro: 'Pusty punkt wyjścia — 30 przykładowych pytań, tylko tekst.',
     downloadCSVBtn: 'Pobierz szablon CSV', downloadXLSXBtn: 'Pobierz szablon XLSX',
-    csvExtraColumnsHelp: 'Opcjonalne kolumny <code>image</code>, <code>link_label</code>, <code>link_url</code> — wyeksportowane pliki zawierają je automatycznie.',
+    csvExtraColumnsHelp: 'Opcjonalne kolumny <code>image</code>, <code>audio</code>, <code>audio_start</code>, <code>audio_autoplay</code>, <code>link_label</code>, <code>link_url</code> — wyeksportowane pliki zawierają je automatycznie.',
     answerLabel: 'Odpowiedź', revealBtn: 'Pokaż odpowiedź', closeBtn: 'Zamknij',
     editQuestionLabel: 'Pytanie', editAnswerLabel: 'Odpowiedź', saveBtn: 'Zapisz', cancelBtn: 'Anuluj',
     editImageLabel: 'Obraz (opcjonalnie)', chooseImage: 'Wybierz obraz', removeImageBtn: 'Usuń obraz',
-    imageCompressHint: 'Obrazy są automatycznie zmniejszane i kompresowane, aby pliki i linki były małe.',
+    imageCompressHint: 'Automatycznie zmniejszany i kompresowany.',
     editLinkLabel: 'Link (opcjonalnie)',
     linkLabelPlaceholder: 'Nazwa linku, np. Zobacz film',
     linkUrlPlaceholder: 'https://…',
-    linkHint: 'Podaj nazwę i adres URL (np. link do YouTube) — pojawi się jako przycisk na pytaniu.',
+    linkHint: 'Pojawi się jako przycisk na pytaniu.',
     defaultLinkText: 'Otwórz link',
     questionPlaceholder: 'Wpisz pytanie…', answerPlaceholder: 'Wpisz odpowiedź…',
     categoryPlaceholder: 'Nazwa kategorii',
@@ -460,33 +540,38 @@ const STRINGS = {
 };
 function t() { return STRINGS[lang]; }
 
+/* ---------- Toast (transient feedback, used only when no dialog is open) ---------- */
+function showToast(message, isError = false) {
+  const toast = $('toast');
+  clearTimeout(toastTimeout);
+  toast.textContent = message;
+  toast.classList.toggle('toast-error', isError);
+  toast.classList.add('toast-show');
+  toastTimeout = setTimeout(() => toast.classList.remove('toast-show'), isError ? 4200 : 2200);
+}
+
 /* ---------- State helpers ---------- */
 function blankState() {
   return Array.from({ length: 6 }, (_, c) => ({
     name: t().newCategoryName(c + 1),
-    questions: Array.from({ length: 5 }, () => ({ question: '', answer: '', image: null, link: null }))
+    questions: Array.from({ length: 5 }, () => blankItem())
   }));
 }
-function blankItem() { return { question: '', answer: '', image: null, link: null }; }
+function blankItem() { return { question: '', answer: '', image: null, audio: null, audioStart: 0, audioAutoplay: true, link: null }; }
 function isBlankItem(item) {
-  return !item.question.trim() && !item.answer.trim() && !item.image && !(item.link && item.link.url);
-}
-
-function showStatus(message, error = false) {
-  $('status').textContent = message;
-  $('status').classList.toggle('error', error);
-  $('status').removeAttribute('data-i18n');
-}
-/* Recomputes the default (non-transient) status line for the current mode/tab. Explicit
-   confirmations (Saved, Cleared, Loaded, Copied, errors, …) are shown afterward and simply
-   overwrite this until the next state change calls this again. */
-function updateIdleStatus() {
-  if (editMode) { showStatus(t().statusIdle); return; }
-  if (activeTab === 'final') showStatus(finalRevealed ? t().finalStatusDone : t().finalStatusReady);
-  else showStatus(t().statusRemaining(30 - removed.size));
+  return !item.question.trim() && !item.answer.trim() && !item.image && !item.audio && !(item.link && item.link.url);
 }
 
 /* ---------- Language switching ---------- */
+function renderHelpSteps() {
+  const list = $('helpSteps');
+  list.replaceChildren();
+  t().helpSteps.forEach(html => {
+    const li = document.createElement('li');
+    li.innerHTML = html; // trusted, hard-coded translation strings only — never user input
+    list.append(li);
+  });
+}
 function applyLanguage() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -494,6 +579,7 @@ function applyLanguage() {
     if (typeof value === 'string') el.innerHTML = value;
   });
   document.title = t().brand;
+  $('infoBtn').setAttribute('aria-label', t().helpBtnLabel);
   $('titleInputGame').placeholder = t().titlePlaceholder;
   $('editQuestion').placeholder = t().questionPlaceholder;
   $('editAnswer').placeholder = t().answerPlaceholder;
@@ -501,13 +587,13 @@ function applyLanguage() {
   $('editLinkUrlInput').placeholder = t().linkUrlPlaceholder;
   $('langEN').setAttribute('aria-pressed', String(lang === 'en'));
   $('langPL').setAttribute('aria-pressed', String(lang === 'pl'));
+  renderHelpSteps();
 
   if (!titleTouched) {
     $('titleInputGame').value = t().defaultTitle;
     $('gameTitle').textContent = t().defaultTitle;
   }
   if (!boardTouched) state = blankState();
-  if (!$('status').classList.contains('error')) updateIdleStatus();
   renderBoard();
 }
 function setLang(next) { if (lang !== next) { lang = next; applyLanguage(); } }
@@ -523,7 +609,6 @@ function setEditMode(on) {
   if ($('modal').open) $('modal').close();
   if ($('editModal').open) $('editModal').close();
   renderBoard();
-  updateIdleStatus();
 }
 
 /* ---------- Round tabs ---------- */
@@ -532,7 +617,6 @@ function setActiveTab(tab) {
   $('tabRound1').setAttribute('aria-selected', String(tab === 'round1'));
   $('tabFinal').setAttribute('aria-selected', String(tab === 'final'));
   renderBoard();
-  updateIdleStatus();
 }
 
 /* ---------- Board rendering ---------- */
@@ -611,9 +695,21 @@ function renderFinalTile(board) {
 
 /* ---------- Countdown timer (clock-style M:SS display) ---------- */
 function formatTimer(totalSeconds) {
+  totalSeconds = Math.max(0, Math.floor(totalSeconds));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+/* Parses a user-typed "Start at" value. Accepts "M:S" (any sizes; overflowing seconds carry
+   into minutes automatically once re-formatted, e.g. "0:72" -> 92... -> shown back as "1:12")
+   or a bare number of seconds. Anything unparseable or negative becomes 0. */
+function parseTimeToSeconds(text) {
+  const trimmed = String(text).trim();
+  const match = /^(\d+):(\d+)$/.exec(trimmed);
+  let total;
+  if (match) total = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+  else total = parseInt(trimmed, 10);
+  return Number.isFinite(total) && total > 0 ? total : 0;
 }
 function stopTimer() {
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
@@ -637,15 +733,41 @@ function startTimer() {
     }
   }, 1000);
 }
+/* Stops the countdown AND any playing question audio — called when a reveal dialog closes
+   (any way: Close button, Esc, or programmatically), so nothing keeps running in the background. */
+function stopTimerAndAudio() {
+  stopTimer();
+  const audio = $('modalAudio');
+  audio.pause();
+  audio.currentTime = 0;
+}
 
 /* ---------- Reveal dialog ----------
    populateAndShowRevealDialog() holds all logic shared between a regular point tile and
    the Final tile; the two open* wrappers below only differ in where the item/meta text
    comes from and how the tile gets marked "used". */
+function playRevealAudio(item) {
+  const audio = $('modalAudio');
+  audio.src = item.audio;
+  audio.hidden = false;
+  const start = Math.max(0, item.audioStart || 0);
+  const beginPlayback = () => {
+    // Seeking past the clip's actual length would error in some browsers, so clamp to duration
+    // once it's known; if it isn't known yet, use the requested start as-is.
+    const duration = audio.duration;
+    audio.currentTime = Number.isFinite(duration) && duration > 0 ? Math.min(start, duration) : start;
+    if (item.audioAutoplay !== false) audio.play().catch(() => {});
+  };
+  if (audio.readyState >= 1) beginPlayback();
+  else audio.addEventListener('loadedmetadata', beginPlayback, { once: true });
+}
 function populateAndShowRevealDialog(item, metaText) {
+  stopTimerAndAudio(); // defensive: clear any leftover audio/timer from a previous question
   $('modalMeta').textContent = metaText;
   if (item.image) { $('modalImage').src = item.image; $('modalImage').hidden = false; }
   else { $('modalImage').hidden = true; $('modalImage').removeAttribute('src'); }
+  if (item.audio) playRevealAudio(item);
+  else { $('modalAudio').hidden = true; $('modalAudio').removeAttribute('src'); }
   $('modalQuestion').textContent = item.question;
   if (item.link && item.link.url) {
     $('modalLink').href = item.link.url;
@@ -666,25 +788,31 @@ function populateAndShowRevealDialog(item, metaText) {
 function openReveal(c, r, points, tile) {
   removed.add(`${c}-${r}`);
   tile.replaceWith(Object.assign(document.createElement('div'), { className: 'empty' }));
-  updateIdleStatus();
   populateAndShowRevealDialog(state[c].questions[r], `${state[c].name} · ${t().points(points)}`);
 }
 function openFinalReveal(tile) {
   finalRevealed = true;
   tile.replaceWith(Object.assign(document.createElement('div'), { className: 'empty' }));
-  updateIdleStatus();
   populateAndShowRevealDialog(finalQuestion, t().finalMetaLabel);
 }
 
 /* ---------- Edit dialog ---------- */
 function populateAndShowEditDialog(item, metaText) {
   editingImage = item.image || null;
+  editingAudio = item.audio || null;
+  editingAudioDuration = null; // unknown until the audio element reports it (see updateAudioPreview)
   $('editMeta').textContent = metaText;
   $('editQuestion').value = item.question;
   $('editAnswer').value = item.answer;
   $('editLinkLabelInput').value = item.link ? item.link.label || '' : '';
   $('editLinkUrlInput').value = item.link ? item.link.url || '' : '';
+  $('editAudioAutoplay').checked = item.audioAutoplay !== false;
+  const hasStart = (item.audioStart || 0) > 0;
+  $('editAudioStartEnabled').checked = hasStart;
+  $('editAudioStartInput').value = formatTimer(item.audioStart || 0);
   updateImagePreview();
+  updateAudioPreview();
+  updateAudioStartFieldState();
   $('editModal').showModal();
   $('editModal').querySelector('.modal-inner').scrollTop = 0;
   $('editQuestion').focus();
@@ -703,6 +831,30 @@ function updateImagePreview() {
   $('editImageRemove').hidden = !hasImage;
   if (hasImage) $('editImagePreview').src = editingImage;
   else $('editImagePreview').removeAttribute('src');
+}
+function updateAudioPreview() {
+  const audioPreview = $('editAudioPreview');
+  audioPreview.pause();
+  const hasAudio = Boolean(editingAudio);
+  audioPreview.hidden = !hasAudio;
+  $('editAudioRemove').hidden = !hasAudio;
+  if (hasAudio) audioPreview.src = editingAudio;
+  else audioPreview.removeAttribute('src');
+}
+/* The "Start at" text field is only meaningful once audio is attached AND the checkbox next
+   to it is checked; both conditions gate whether it's enabled for typing. */
+function updateAudioStartFieldState() {
+  $('editAudioStartInput').disabled = !editingAudio || !$('editAudioStartEnabled').checked;
+}
+/* Caps a "Start at" value to the clip's known duration (once loaded), re-formats it, and
+   writes it back into the field — used both when the user types a value and when the audio's
+   duration becomes known after a fresh upload. */
+function clampAudioStartField() {
+  let seconds = parseTimeToSeconds($('editAudioStartInput').value);
+  if (typeof editingAudioDuration === 'number' && editingAudioDuration > 0) {
+    seconds = Math.min(seconds, Math.floor(editingAudioDuration));
+  }
+  $('editAudioStartInput').value = formatTimer(seconds);
 }
 
 /* ---------- Image compression (resize + re-encode as JPEG) ----------
@@ -793,11 +945,11 @@ function parseCSV(input) {
 /* Parses rows into 6 categories x 5 questions, plus an optional Final question. A row whose
    category (case-insensitively) equals "Final" is pulled out as the Final question rather than
    grouped as a 7th category; at most one such row is allowed. Recognizes optional "image",
-   "link_label" and "link_url" columns in addition to the required "category", "question",
-   "answer" columns, so exported files round-trip images and links. Only the category name is
-   required per row — question/answer may be blank, representing a tile that's still being
-   written. Files without any "Final" row simply leave the Final question untouched (older
-   30-row exports/templates keep working). */
+   "audio", "audio_start", "audio_autoplay", "link_label" and "link_url" columns in addition to
+   the required "category", "question", "answer" columns, so exported files round-trip media and
+   links. Only the category name is required per row — question/answer may be blank, representing
+   a tile that's still being written. Files missing any given optional column (or any "Final"
+   row) simply leave that field at its default — older exports/templates keep working. */
 function parseGame(rows) {
   if (!rows.length) throw new Error(t().emptyFile);
   const header = rows[0].map(h => String(h).trim().toLowerCase());
@@ -805,6 +957,9 @@ function parseGame(rows) {
   if (required.some(h => header.filter(x => x === h).length !== 1)) throw new Error(t().headerMismatch);
   const [categoryPos, questionPos, answerPos] = required.map(h => header.indexOf(h));
   const imagePos = header.indexOf('image');
+  const audioPos = header.indexOf('audio');
+  const audioStartPos = header.indexOf('audio_start');
+  const audioAutoplayPos = header.indexOf('audio_autoplay');
   const linkLabelPos = header.indexOf('link_label');
   const linkUrlPos = header.indexOf('link_url');
 
@@ -817,15 +972,21 @@ function parseGame(rows) {
     const question = String(row[questionPos]).trim();
     const answer = String(row[answerPos]).trim();
     const image = imagePos >= 0 ? String(row[imagePos]).trim() || null : null;
+    const audio = audioPos >= 0 ? String(row[audioPos]).trim() || null : null;
+    const audioStartRaw = audioStartPos >= 0 ? parseFloat(row[audioStartPos]) : NaN;
+    const audioStart = Number.isFinite(audioStartRaw) && audioStartRaw > 0 ? audioStartRaw : 0;
+    const audioAutoplayRaw = audioAutoplayPos >= 0 ? String(row[audioAutoplayPos]).trim().toLowerCase() : '';
+    const audioAutoplay = !(audioAutoplayRaw === 'false' || audioAutoplayRaw === '0' || audioAutoplayRaw === 'no');
     const linkUrl = linkUrlPos >= 0 ? String(row[linkUrlPos]).trim() : '';
     const link = linkUrl ? { label: linkLabelPos >= 0 ? String(row[linkLabelPos]).trim() : '', url: linkUrl } : null;
+    const item = { question, answer, image, audio, audioStart, audioAutoplay, link };
     if (category.toLowerCase() === FINAL_CATEGORY_KEYWORD) {
       if (final) throw new Error(t().finalRowDuplicate(i + 2));
-      final = { question, answer, image, link };
+      final = item;
       return;
     }
     if (!groups.has(category)) groups.set(category, []);
-    groups.get(category).push({ question, answer, image, link });
+    groups.get(category).push(item);
   });
   if (groups.size !== 6) throw new Error(t().categoryCount(groups.size));
   for (const [name, items] of groups) if (items.length !== 5) throw new Error(t().categoryQuestions(name, items.length));
@@ -1051,21 +1212,26 @@ function templateRows() {
   rows.push(['Final', s.templateFinalQuestion, s.templateFinalAnswer]);
   return rows;
 }
-/* Full export of the current board: the 3 required columns plus image/link_label/link_url so
-   the file round-trips perfectly through "Choose CSV or XLSX" later, images included. Blank
-   tiles export as empty question/answer cells, which parseGame accepts on the way back in. The
-   Final question is appended as one extra row using the reserved "Final" category keyword. */
+/* Full export of the current board: the 3 required columns plus image/audio/audio_start/
+   audio_autoplay/link_label/link_url so the file round-trips perfectly through "Choose CSV or
+   XLSX" later, media included. Blank tiles export as empty question/answer cells, which
+   parseGame accepts on the way back in. The Final question is appended as one extra row using
+   the reserved "Final" category keyword. */
 function exportRows() {
-  const rows = [['category', 'question', 'answer', 'image', 'link_label', 'link_url']];
+  const rows = [['category', 'question', 'answer', 'image', 'audio', 'audio_start', 'audio_autoplay', 'link_label', 'link_url']];
+  const toRow = (categoryName, item) => {
+    const link = item.link || {};
+    return [
+      categoryName, item.question, item.answer, item.image || '', item.audio || '',
+      item.audio ? String(item.audioStart || 0) : '',
+      item.audio ? String(item.audioAutoplay !== false) : '',
+      link.label || '', link.url || ''
+    ];
+  };
   for (let r = 0; r < 5; r++) {
-    for (const cat of state) {
-      const q = cat.questions[r];
-      const link = q.link || {};
-      rows.push([cat.name, q.question, q.answer, q.image || '', link.label || '', link.url || '']);
-    }
+    for (const cat of state) rows.push(toRow(cat.name, cat.questions[r]));
   }
-  const finalLink = finalQuestion.link || {};
-  rows.push(['Final', finalQuestion.question, finalQuestion.answer, finalQuestion.image || '', finalLink.label || '', finalLink.url || '']);
+  rows.push(toRow('Final', finalQuestion));
   return rows;
 }
 function saveBlob(blob, name) {
@@ -1169,11 +1335,14 @@ function fromBase64Url(str) {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return JSON.parse(new TextDecoder('utf-8').decode(bytes));
 }
-function serializeItemForShare(item, includeImages) {
+function serializeItemForShare(item, includeMedia) {
   return {
     question: item.question,
     answer: item.answer,
-    image: includeImages ? (item.image || null) : null,
+    image: includeMedia ? (item.image || null) : null,
+    audio: includeMedia ? (item.audio || null) : null,
+    audioStart: item.audioStart || 0,
+    audioAutoplay: item.audioAutoplay !== false,
     link: item.link && item.link.url ? { label: item.link.label || '', url: item.link.url } : null
   };
 }
@@ -1183,33 +1352,46 @@ function deserializeItemFromShare(raw) {
     question: typeof q.question === 'string' ? q.question : '',
     answer: typeof q.answer === 'string' ? q.answer : '',
     image: typeof q.image === 'string' ? q.image : null,
+    audio: typeof q.audio === 'string' ? q.audio : null,
+    audioStart: (typeof q.audioStart === 'number' && Number.isFinite(q.audioStart)) ? Math.max(0, q.audioStart) : 0,
+    audioAutoplay: typeof q.audioAutoplay === 'boolean' ? q.audioAutoplay : true,
     link: (q.link && typeof q.link.url === 'string' && q.link.url) ? { label: typeof q.link.label === 'string' ? q.link.label : '', url: q.link.url } : null
   };
 }
-function buildSharePayload(includeImages) {
+function buildSharePayload(includeMedia) {
   return {
     v: 1,
     lang,
     title: $('titleInputGame').value.trim() || $('gameTitle').textContent || t().defaultTitle,
     categories: state.map(cat => ({
       name: cat.name,
-      questions: cat.questions.map(q => serializeItemForShare(q, includeImages))
+      questions: cat.questions.map(q => serializeItemForShare(q, includeMedia))
     })),
     removed: [...removed],
-    final: serializeItemForShare(finalQuestion, includeImages),
+    final: serializeItemForShare(finalQuestion, includeMedia),
     finalRevealed
   };
 }
+/* Resets the Copy-link button back to its default label — called every time the link is
+   (re)generated, i.e. on opening the Share dialog and on toggling "include images and audio",
+   so a stale "Copied!" state never lingers past the point where the link it referred to has
+   changed. */
+function resetShareCopyButton() {
+  const btn = $('shareCopy');
+  btn.textContent = t().copyBtn;
+  btn.classList.remove('copied');
+  $('shareCopyError').hidden = true;
+}
 function refreshShareLink() {
-  const includeImages = $('shareIncludeImages').checked;
-  const encoded = toBase64Url(buildSharePayload(includeImages));
+  resetShareCopyButton();
+  const includeMedia = $('shareIncludeImages').checked;
+  const encoded = toBase64Url(buildSharePayload(includeMedia));
   const url = `${location.origin}${location.pathname}${location.search}#${encoded}`;
 
-  // Always show/copy the correct link first. Only AFTER that, try to also reflect it in the
-  // visible address bar — some browsers refuse very long history entries, but that must never
-  // block the user from seeing and copying the real, complete link.
+  // Always show the correct link first. Only AFTER that, try to also reflect it in the visible
+  // address bar — some browsers refuse very long history entries, but that must never block the
+  // user from seeing and copying the real, complete link.
   $('shareLinkInput').value = url;
-  $('shareStatus').textContent = '';
   let addressBarFailed = false;
   try {
     history.replaceState(null, '', `#${encoded}`);
@@ -1260,6 +1442,8 @@ $('titleInputGame').addEventListener('input', () => {
 });
 $('tabRound1').addEventListener('click', () => setActiveTab('round1'));
 $('tabFinal').addEventListener('click', () => setActiveTab('final'));
+$('infoBtn').addEventListener('click', () => $('helpModal').showModal());
+$('helpClose').addEventListener('click', () => $('helpModal').close());
 
 $('timerEnabledInput').addEventListener('change', e => { timerEnabled = e.target.checked; });
 // Strip any non-digit character immediately, so only whole numbers can ever be typed.
@@ -1291,11 +1475,11 @@ $('questionFile').addEventListener('change', async event => {
     boardTouched = true;
     removed = new Set();
     setActiveTab('round1');
-    showStatus(t().statusLoaded);
+    showToast(t().statusLoaded);
     renderBoard();
   } catch (error) {
     const message = (error instanceof TypeError && /\.csv$/i.test(file.name)) ? t().csvDecodeError : error.message;
-    showStatus(t().statusLoadError(file.name, message), true);
+    showToast(t().statusLoadError(file.name, message), true);
   }
   event.target.value = '';
 });
@@ -1308,18 +1492,17 @@ $('clearBoard').addEventListener('click', () => {
   boardTouched = false;
   removed = new Set();
   setActiveTab('round1');
-  showStatus(t().statusCleared);
+  showToast(t().statusCleared);
 });
 $('reset').addEventListener('click', () => {
   removed = new Set();
   finalRevealed = false;
   renderBoard();
-  updateIdleStatus();
 });
 
-$('modal').addEventListener('close', stopTimer);
+$('modal').addEventListener('close', stopTimerAndAudio);
 $('reveal').addEventListener('click', () => {
-  stopTimer();
+  stopTimer(); // stop the countdown on Reveal; let audio keep playing if the player wants it to
   $('answerBox').hidden = false;
   $('reveal').hidden = true;
   // Bring the answer into view within the scrollable content area — fixes having to scroll
@@ -1335,22 +1518,15 @@ $('close').addEventListener('click', () => {
 $('editImageFile').addEventListener('change', async event => {
   const file = event.target.files[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) { showStatus(t().imageTypeError, true); event.target.value = ''; return; }
-  const sizeInfo = $('editImageSizeInfo');
+  if (!file.type.startsWith('image/')) { showToast(t().imageTypeError, true); event.target.value = ''; return; }
   $('editImageFile').disabled = true;
   $('editSave').disabled = true;
-  sizeInfo.hidden = false;
-  sizeInfo.textContent = t().imageCompressing;
   try {
     const result = await compressImageFile(file);
     editingImage = result.dataUrl;
     updateImagePreview();
-    const originalKB = Math.max(1, Math.round(result.originalBytes / 1024));
-    const finalKB = Math.max(1, Math.round(result.finalBytes / 1024));
-    sizeInfo.textContent = t().imageCompressedInfo(originalKB, finalKB);
   } catch {
-    sizeInfo.hidden = true;
-    showStatus(t().imageCompressError, true);
+    showToast(t().imageCompressError, true);
   } finally {
     $('editImageFile').disabled = false;
     $('editSave').disabled = false;
@@ -1360,21 +1536,76 @@ $('editImageFile').addEventListener('change', async event => {
 $('editImageRemove').addEventListener('click', () => {
   editingImage = null;
   updateImagePreview();
-  $('editImageSizeInfo').hidden = true;
 });
+
+$('editAudioFile').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('audio/')) { showToast(t().audioTypeError, true); event.target.value = ''; return; }
+  if (file.size > MAX_AUDIO_BYTES) {
+    showToast(t().audioTooLargeError(Math.round(MAX_AUDIO_BYTES / (1024 * 1024))), true);
+    event.target.value = '';
+    return;
+  }
+  try {
+    editingAudio = await readFileAsDataURL(file);
+    editingAudioDuration = null; // will be picked up once the preview element loads metadata
+    // Fresh file: reset "Start at" to the beginning until the user sets a new position.
+    $('editAudioStartEnabled').checked = false;
+    $('editAudioStartInput').value = '0:00';
+    updateAudioPreview();
+    updateAudioStartFieldState();
+  } catch {
+    showToast(t().audioTypeError, true);
+  } finally {
+    event.target.value = '';
+  }
+});
+$('editAudioRemove').addEventListener('click', () => {
+  editingAudio = null;
+  editingAudioDuration = null;
+  $('editAudioStartEnabled').checked = false;
+  $('editAudioStartInput').value = '0:00';
+  updateAudioPreview();
+  updateAudioStartFieldState();
+});
+$('editAudioStartEnabled').addEventListener('change', updateAudioStartFieldState);
+// Once the browser knows the clip's length, remember it and immediately re-clamp whatever is
+// currently in the "Start at" field (covers both a freshly chosen file and re-opening a saved
+// question whose stored start time might exceed this particular file's length).
+$('editAudioPreview').addEventListener('loadedmetadata', () => {
+  const duration = $('editAudioPreview').duration;
+  editingAudioDuration = Number.isFinite(duration) && duration > 0 ? duration : null;
+  clampAudioStartField();
+});
+// Normalize (and re-clamp to the known duration) on blur/change, rather than fighting the
+// user's keystrokes while they're still typing.
+$('editAudioStartInput').addEventListener('change', clampAudioStartField);
+// Dragging the audio preview's own (native) seek bar doubles as a quick way to set "Start at":
+// once the user finishes seeking, copy that position into the field and check the box for them.
+$('editAudioPreview').addEventListener('seeked', () => {
+  if (!editingAudio) return;
+  $('editAudioStartInput').value = formatTimer($('editAudioPreview').currentTime);
+  $('editAudioStartEnabled').checked = true;
+  updateAudioStartFieldState();
+});
+
 $('editSave').addEventListener('click', () => {
   const url = $('editLinkUrlInput').value.trim();
+  const audioStart = $('editAudioStartEnabled').checked ? parseTimeToSeconds($('editAudioStartInput').value) : 0;
   const newItem = {
     question: $('editQuestion').value,
     answer: $('editAnswer').value,
     image: editingImage,
+    audio: editingAudio,
+    audioStart,
+    audioAutoplay: $('editAudioAutoplay').checked,
     link: url ? { label: $('editLinkLabelInput').value.trim(), url } : null
   };
   if (editingTarget.final) finalQuestion = newItem;
   else state[editingTarget.c].questions[editingTarget.r] = newItem;
   boardTouched = true;
   $('editModal').close();
-  showStatus(t().statusSaved);
   renderBoard();
 });
 $('editCancel').addEventListener('click', () => $('editModal').close());
@@ -1396,17 +1627,24 @@ $('shareBtn').addEventListener('click', () => { $('shareModal').showModal(); ref
 $('shareIncludeImages').addEventListener('change', refreshShareLink);
 $('shareCopy').addEventListener('click', async () => {
   const input = $('shareLinkInput');
+  const btn = $('shareCopy');
+  const markCopied = () => {
+    btn.textContent = t().copiedBtn;
+    btn.classList.add('copied');
+    $('shareCopyError').hidden = true;
+  };
   try {
     await navigator.clipboard.writeText(input.value);
-    $('shareStatus').textContent = t().copiedMsg;
+    markCopied();
   } catch {
     input.focus();
     input.select();
     try {
       document.execCommand('copy');
-      $('shareStatus').textContent = t().copiedMsg;
+      markCopied();
     } catch {
-      $('shareStatus').textContent = t().copyFailMsg;
+      $('shareCopyError').textContent = t().copyFailMsg;
+      $('shareCopyError').hidden = false;
     }
   }
 });
@@ -1417,8 +1655,8 @@ state = blankState();
 finalQuestion = blankItem();
 const restoredFromLink = tryRestoreFromHash();
 applyLanguage();
-if (restoredFromLink) showStatus(t().stateRestored);
-else if (location.hash) showStatus(t().stateRestoreError, true);
+if (restoredFromLink) showToast(t().stateRestored);
+else if (location.hash) showToast(t().stateRestoreError, true);
 </script>
 </body>
 </html>
